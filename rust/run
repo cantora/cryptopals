@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if ! { make -s -C rust && rustc -L rust soln.rs; }; then
+  echo 'failed to build!'
+  exit 1
+else
+  ./soln
+fi
