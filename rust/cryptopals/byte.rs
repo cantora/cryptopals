@@ -18,9 +18,16 @@ impl fmt::Show for Byte {
 
     match b {
       0x20..0x7e => write!(f, "{:c}", Byte(b)),
-      _ => write!(f, "\\x{:02x}", b)
+      _          => write!(f, "\\x{:02x}", b)
     }
   }
 }
 
+impl BitXor<Byte, Byte> for Byte {
+  fn bitxor(&self, rhs: &Byte) -> Byte {
+    let Byte(other_b) = *rhs;
+    let Byte(b) = *self;
 
+    Byte(b^other_b)
+  }
+}
