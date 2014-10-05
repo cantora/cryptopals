@@ -9,7 +9,9 @@ use std::fmt;
 use std::vec::Vec;
 use std::path::BytesContainer;
 
+use byte;
 use byte::Byte;
+use byte::ClassFlags;
 
 #[deriving(PartialEq, Eq)]
 pub struct Bytes(pub Vec<u8>);
@@ -94,4 +96,36 @@ impl Bytes {
     })
   }
 
+  pub fn xor_byte(&self, rhs: u8) -> Bytes {
+    let Bytes(ref vec1) = *self;
+
+    if vec1.len() < 1 {
+      return Bytes(Vec::new());
+    }
+
+    let mut out_v: Vec<u8> = Vec::with_capacity(vec1.len());
+
+    for i in range(0, vec1.len()) {
+      let b = *vec1.get(i) ^ rhs;
+      out_v.push(b);
+    }
+
+    return Bytes(out_v);
+  }
+
+  pub fn has_byte_class(&self, flags: ClassFlags) -> bool {
+    let Bytes(ref vec) = *self;
+
+    for b in vec.iter() {
+      if Byte(*b).class().intersects(flags) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  pub fn is_printable_ascii(&self) -> bool {
+    !self.has_byte_class(byte::Control | byte::HighBit)
+  }
 }

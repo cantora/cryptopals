@@ -12,6 +12,10 @@ all: .libcryptopals.rlib .libstatic_mdo.rlib
 	rustc --crate-type rlib cryptopals/lib.rs
 	touch $@
 
+.PHONY: expanded-cryptopals
+expanded-cryptopals:
+	rustc --pretty expanded --crate-type rlib cryptopals/lib.rs
+
 $(STATIC_MDO_LIBFILE):
 	git clone 'https://github.com/cantora/static_mdo.git'
 

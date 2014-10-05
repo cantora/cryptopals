@@ -5,5 +5,7 @@
 pub use byte::Byte;
 pub use bytes::Bytes;
 
-mod byte;
-mod bytes;
+pub mod byte;
+pub mod bytes;
+
+pub mod analysis;
