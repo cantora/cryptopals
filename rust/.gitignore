@@ -1,3 +1,4 @@
 *.rlib
 scratch
 rust-mdo
+static_mdo

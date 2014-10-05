@@ -1,35 +1,26 @@
 
 CRYPTOPALS_SRC		= $(shell find cryptopals/ -iname '*.rs')
-MDO_CRATE_ROOT		= rust-mdo/src/lib.rs
-MDO_SRC				= $(shell find rust-mdo/ -iname '*.rs' 2>/dev/null || echo $(MDO_CRATE_ROOT))
+
+STATIC_MDO_LIBFILE	= static_mdo/src/lib.rs
+STATIC_MDO_SRC		= $(shell find static_mdo/ -iname '*.rs' 2>/dev/null || echo $(STATIC_MDO_LIBFILE) )
 
 .PHONY: all
-all: libcryptopals.rlib libmdo.rlib
+all: .libcryptopals.rlib .libstatic_mdo.rlib
 
-libcryptopals.rlib: makefile $(CRYPTOPALS_SRC)
+.libcryptopals.rlib: makefile $(CRYPTOPALS_SRC)
 	rm -f libcryptopals*.rlib
 	rustc --crate-type rlib cryptopals/lib.rs
-	find . -iname 'libcryptopals*.rlib' | head -1 | xargs -I% ln -s % $@
+	touch $@
 
+$(STATIC_MDO_LIBFILE):
+	git clone 'https://github.com/cantora/static_mdo.git'
 
-rust-mdo/src/lib.rs:
-	git clone 'https://github.com/TeXitoi/rust-mdo.git'
-	cd rust-mdo \
-		&& git checkout 3fbeb615359af9c705eccf82915e8ea7851f7594
-
-libmdo.rlib: makefile $(MDO_SRC)
-	rm -f libmdo*.rlib
-	if ! grep 'crate_id = "mdo#0.0.4"' $(MDO_CRATE_ROOT); then \
-		{ \
-			echo '#![crate_id = "mdo#0.0.4"]'; \
-			cat $(MDO_CRATE_ROOT); \
-		} > $(MDO_CRATE_ROOT).tmp; \
-		cp $(MDO_CRATE_ROOT).tmp $(MDO_CRATE_ROOT); \
-	fi
-
-	rustc --crate-type rlib $(MDO_CRATE_ROOT)
-	find . -iname 'libmdo*.rlib' | head -1 | xargs -I% ln -s % $@
+.libstatic_mdo.rlib: makefile $(STATIC_MDO_SRC)
+	rm -f libstatic_mdo*.rlib
+	$(MAKE) -C static_mdo
+	ln -s static_mdo/$$(readlink static_mdo/libstatic_mdo.rlib)
+	touch $@
 
 clean:
 	rm -f *.rlib
-	rm -rf ./rust-mdo
+	rm -f .*.rlib
