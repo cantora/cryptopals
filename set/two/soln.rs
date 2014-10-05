@@ -1,39 +1,11 @@
-#![feature(macro_rules)] 
+#![feature(phase)]
+
 extern crate cryptopals;
 
+#[phase(plugin, link)]
+extern crate static_mdo;
+
 use cryptopals::Bytes;
-
-#[macro_export]
-macro_rules! result_do(
-    (
-        let $p:path = $e:expr ; $( $t:tt )*
-    ) => (
-        { let $p = $e ; result_do! { $( $t )* } }
-    );
-
-    (
-        $p:pat <- $e:expr ; $( $t:tt )*
-    ) => (
-        match $e {
-          Ok($p)     => result_do! { $( $t )* },
-          Err(err)   => Err(err)
-        }
-    );
-
-    (
-        ign $e:expr ; $( $t:tt )*
-    ) => (
-        match $e {
-          _ => result_do! { $( $t )* }
-        }
-    );
-
-    (
-        ret $f:expr
-    ) => (
-        Ok($f)
-    )
-)
 
 fn main() {
   let input1 = "1c0111001f010100061a024b53535009181c";
