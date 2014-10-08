@@ -12,6 +12,8 @@ use std::path::BytesContainer;
 use byte;
 use byte::Byte;
 use byte::ClassFlags;
+use byte::Histogram;
+use byte::NormalHistogram;
 
 #[deriving(PartialEq, Eq)]
 pub struct Bytes(pub Vec<u8>);
@@ -127,5 +129,14 @@ impl Bytes {
 
   pub fn is_printable_ascii(&self) -> bool {
     !self.has_byte_class(byte::Control | byte::HighBit)
+  }
+
+  pub fn hist(&self) -> Histogram {
+    let Bytes(ref vec) = *self;
+    Histogram::from_iter(vec.iter())
+  }
+
+  pub fn normal_hist(&self) -> NormalHistogram {
+    NormalHistogram::from_histogram(&self.hist())
   }
 }
