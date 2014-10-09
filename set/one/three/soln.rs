@@ -53,7 +53,7 @@ fn main() {
   for b in byte::all() {
     let xord = bs.xor_byte(b);
     if xord.is_printable_ascii() {
-      let score = 1.0f64 - xord.normal_hist().distance_chi2(&engl_hist);
+      let score = -xord.normal_hist().distance_chi2(&engl_hist);
       pq.push(PQCell {
         priority: score,
         value: xord
@@ -63,7 +63,7 @@ fn main() {
 
   for i in range(0i, 5) {
     match pq.pop() {
-      Some(ref pqcell) => println!("{}: {}", i, pqcell.value),
+      Some(ref pqcell) => println!("{} ({}): {}", i, pqcell.priority, pqcell.value),
       _                => break
     }
   }
