@@ -11,6 +11,7 @@
 //! A priority queue implemented with a binary heap
 
 #![allow(missing_doc)]
+#![allow(visible_private_types)]
 //use self::core::prelude::*;
 
 use std::default::Default;
