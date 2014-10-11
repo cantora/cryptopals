@@ -2,7 +2,6 @@ extern crate std;
 use std::iter;
 
 use bytes::Bytes;
-use pqueue;
 use pqueue::PriorityQueue;
 use util::PQCell;
 use byte::NormalHistogram;
@@ -84,21 +83,21 @@ impl HeapByChi2 {
     }
   }
 
-  pub fn iter<'a>(&'a self) -> HeapByChi2Iter<'a> {
-    let HeapByChi2(ref pq) = *self;
-    HeapByChi2Iter(pq.iter())
+  pub fn consume(self) -> HeapByChi2Iter {
+    let HeapByChi2(pq) = self;
+    HeapByChi2Iter(pq)
   }
 }
 
-pub struct HeapByChi2Iter<'a> (
-  pub pqueue::Items<'a,PQCell<f64,Bytes>>
+pub struct HeapByChi2Iter (
+  pub PriorityQueue<PQCell<f64, Bytes>>
 );
 
-impl<'a> iter::Iterator<(f64, &'a Bytes)> for HeapByChi2Iter<'a> {
-  fn next(&mut self) -> Option<(f64, &'a Bytes)> {
-    let HeapByChi2Iter(ref mut itr) = *self;
-    match itr.next() {
-      Some(pqcell) => Some((pqcell.priority, &pqcell.value)),
+impl iter::Iterator<(f64, Bytes)> for HeapByChi2Iter {
+  fn next(&mut self) -> Option<(f64, Bytes)> {
+    let HeapByChi2Iter(ref mut pq) = *self;
+    match pq.pop() {
+      Some(pqcell) => Some((pqcell.priority, pqcell.value)),
       _            => None
     }
   }

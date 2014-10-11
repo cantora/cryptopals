@@ -18,7 +18,7 @@ fn main() {
     engl_heap.add(bs.xor_byte(b));
   }
 
-  for (score, val) in engl_heap.iter().take(5) {
+  for (score, val) in engl_heap.consume().take(5) {
     println!("{}: {}", score, val);
   }
 }
