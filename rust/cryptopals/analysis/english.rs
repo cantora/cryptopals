@@ -52,53 +52,68 @@ pub fn histogram() -> NormalHistogram {
   }}
 }
 
-pub struct HeapByChi2(
-  pub PriorityQueue<PQCell<f64, Bytes>>
+#[deriving(PartialEq)]
+struct HeapByChi2Data<T> {
+  pub data: Bytes,
+  pub meta: T
+}
+
+pub struct HeapByChi2<T>(
+  pub PriorityQueue<
+        PQCell<
+          f64,
+          HeapByChi2Data<T>
+        >
+      >
 );
 
-impl HeapByChi2 {
+impl<T: PartialEq> HeapByChi2<T> {
 
-  pub fn new() -> HeapByChi2 {
+  pub fn new() -> HeapByChi2<T> {
     HeapByChi2(PriorityQueue::new())
   }
 
-  pub fn add(&mut self, bs: Bytes) -> f64 {
+  pub fn add(&mut self, bs: Bytes, metadata: T) -> f64 {
     let score = -bs.normal_hist().distance_chi2(&histogram());
     let HeapByChi2(ref mut pq) = *self;
 
     pq.push(PQCell {
       priority: score,
-      value: bs
+      value: HeapByChi2Data {
+        data: bs,
+        meta: metadata
+      }
     });
 
     score
   }
 
-  pub fn pop(&mut self) -> Option<(f64, Bytes)> {
+  pub fn pop(&mut self) -> Option<(f64, Bytes, T)> {
     let HeapByChi2(ref mut pq) = *self;
 
     match pq.pop() {
-      Some(pqcell) => Some((pqcell.priority, pqcell.value)),
+      Some(pqcell) =>
+        Some(
+          (pqcell.priority, pqcell.value.data, pqcell.value.meta)
+        ),
       _            => None
     }
   }
 
-  pub fn consume(self) -> HeapByChi2Iter {
-    let HeapByChi2(pq) = self;
-    HeapByChi2Iter(pq)
+  pub fn consume(self) -> HeapByChi2Iter<T> {
+    HeapByChi2Iter(self)
   }
 }
 
-pub struct HeapByChi2Iter (
-  pub PriorityQueue<PQCell<f64, Bytes>>
+
+pub struct HeapByChi2Iter<T> (
+  pub HeapByChi2<T>
 );
 
-impl iter::Iterator<(f64, Bytes)> for HeapByChi2Iter {
-  fn next(&mut self) -> Option<(f64, Bytes)> {
-    let HeapByChi2Iter(ref mut pq) = *self;
-    match pq.pop() {
-      Some(pqcell) => Some((pqcell.priority, pqcell.value)),
-      _            => None
-    }
+impl<T: PartialEq> iter::Iterator<(f64, Bytes, T)>
+                   for HeapByChi2Iter<T> {
+  fn next(&mut self) -> Option<(f64, Bytes, T)> {
+    let HeapByChi2Iter(ref mut hp) = *self;
+    hp.pop()
   }
 }

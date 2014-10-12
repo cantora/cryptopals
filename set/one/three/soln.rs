@@ -9,16 +9,16 @@ fn main() {
 
   println!("input: {}", input);
 
-  let bs = Bytes::from_hex_str(input).unwrap();
+  let bs = Bytes::from_hex(&input).unwrap();
   println!("bs: {}", bs);
 
   let mut engl_heap = english::HeapByChi2::new();
 
   for b in byte::all() {
-    engl_heap.add(bs.xor_byte(b));
+    engl_heap.add(bs.xor_byte(b), b);
   }
 
-  for (score, val) in engl_heap.consume().take(5) {
-    println!("{}: {}", score, val);
+  for (score, val, key) in engl_heap.consume().take(5) {
+    println!("{} (key = {}): {}", score, key, val);
   }
 }

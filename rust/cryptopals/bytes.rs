@@ -79,15 +79,25 @@ impl BitXor<Bytes, Bytes> for Bytes {
   }
 }
 
+pub type FromHexResult = Result<Bytes, FromHexError>;
+
 impl Bytes {
+  pub fn new() -> Bytes {
+    Bytes(Vec::new())
+  }
+
   pub fn from_slice<'a>(bs: &'a [u8]) -> Bytes {
     Bytes(Vec::from_slice(bs))
   }
 
-  pub fn from_hex_str(s: &str) -> Result<Bytes, FromHexError> {
-    s.from_hex().and_then(|bvec| {
+  pub fn from_hex<T: FromHex>(input: &T) -> FromHexResult {
+    input.from_hex().and_then(|bvec| {
       Ok(Bytes(bvec))
     })
+  }
+
+  pub fn from_hex_string(s: &String) -> FromHexResult {
+    Bytes::from_hex(&s.as_slice())
   }
 
   pub fn base64(&self) -> String {
