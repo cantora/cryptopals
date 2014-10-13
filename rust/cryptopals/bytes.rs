@@ -3,8 +3,8 @@ extern crate serialize;
 
 use self::serialize::base64;
 use self::serialize::base64::ToBase64;
-use self::serialize::hex::{FromHex, FromHexError};
-
+use self::serialize::hex;
+use self::serialize::hex::ToHex;
 use std::fmt;
 use std::vec::Vec;
 use std::path::BytesContainer;
@@ -79,7 +79,14 @@ impl BitXor<Bytes, Bytes> for Bytes {
   }
 }
 
-pub type FromHexResult = Result<Bytes, FromHexError>;
+pub type FromHexResult = Result<Bytes, hex::FromHexError>;
+
+impl hex::ToHex for Bytes {
+  fn to_hex(&self) -> String {
+    let Bytes(ref vec) = *self;
+    vec.as_slice().to_hex()
+  }
+}
 
 impl Bytes {
   pub fn new() -> Bytes {
@@ -90,7 +97,11 @@ impl Bytes {
     Bytes(Vec::from_slice(bs))
   }
 
-  pub fn from_hex<T: FromHex>(input: &T) -> FromHexResult {
+  pub fn from_str<'a>(bs: &'a str) -> Bytes {
+    Bytes::from_slice(bs.as_bytes())
+  }
+
+  pub fn from_hex<T: hex::FromHex>(input: &T) -> FromHexResult {
     input.from_hex().and_then(|bvec| {
       Ok(Bytes(bvec))
     })
@@ -108,6 +119,10 @@ impl Bytes {
     })
   }
 
+  pub fn hex(&self) -> String {
+    self.to_hex()
+  }
+
   pub fn xor_byte(&self, rhs: u8) -> Bytes {
     let Bytes(ref vec1) = *self;
 
@@ -122,7 +137,29 @@ impl Bytes {
       out_v.push(b);
     }
 
-    return Bytes(out_v);
+    Bytes(out_v)
+  }
+
+  pub fn xor_bytes(&self, rhs: &Bytes) -> Result<Bytes, &str> {
+    let Bytes(ref vec1) = *self;
+    let Bytes(ref vec_rhs) = *rhs;
+    let modulo = vec_rhs.len();
+
+    if vec1.len() < 1 {
+      return Ok(Bytes(Vec::new()));
+    }
+    if modulo < 1 {
+      return Err("empty rhs");
+    }
+
+    let mut out_v: Vec<u8> = Vec::with_capacity(vec1.len());
+
+    for i in range(0, vec1.len()) {
+      let b = *vec1.get(i) ^ *vec_rhs.get(i%modulo);
+      out_v.push(b);
+    }
+
+    Ok(Bytes(out_v))
   }
 
   pub fn has_byte_class(&self, flags: ClassFlags) -> bool {
@@ -150,3 +187,4 @@ impl Bytes {
     NormalHistogram::from_histogram(&self.hist())
   }
 }
+
