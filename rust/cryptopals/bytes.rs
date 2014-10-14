@@ -124,20 +124,7 @@ impl Bytes {
   }
 
   pub fn xor_byte(&self, rhs: u8) -> Bytes {
-    let Bytes(ref vec1) = *self;
-
-    if vec1.len() < 1 {
-      return Bytes(Vec::new());
-    }
-
-    let mut out_v: Vec<u8> = Vec::with_capacity(vec1.len());
-
-    for i in range(0, vec1.len()) {
-      let b = *vec1.get(i) ^ rhs;
-      out_v.push(b);
-    }
-
-    Bytes(out_v)
+    self.xor_bytes(&Bytes::from_slice([rhs])).unwrap()
   }
 
   pub fn xor_bytes(&self, rhs: &Bytes) -> Result<Bytes, &str> {
@@ -160,6 +147,38 @@ impl Bytes {
     }
 
     Ok(Bytes(out_v))
+  }
+
+  pub fn n_common_bits(&self, rhs: &Bytes) -> Result<uint, &str> {
+    let Bytes(ref vec1) = *self;
+    let Bytes(ref vec2) = *rhs;
+    let len = vec1.len();
+
+    if len != vec2.len() {
+      return Err("both byte sequences must be the same length");
+    }
+
+    if len < 1 {
+      return Ok(0);
+    }
+
+    Ok((*self ^ *rhs).n_set_bits())
+  }
+
+  pub fn n_set_bits(&self) -> uint {
+    let Bytes(ref vec1) = *self;
+    let mut count = 0u;
+    let bit_count_table: [u8,..16] = [
+      0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
+    ];
+  
+  
+    for b in vec1.iter() {
+      count += bit_count_table[(b&0x0f) as uint] as uint;
+      count += bit_count_table[(b>>4) as uint] as uint;
+    }
+
+    count
   }
 
   pub fn has_byte_class(&self, flags: ClassFlags) -> bool {
