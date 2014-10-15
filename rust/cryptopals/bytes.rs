@@ -3,6 +3,8 @@ extern crate serialize;
 
 use self::serialize::base64;
 use self::serialize::base64::ToBase64;
+use self::serialize::base64::FromBase64;
+use self::serialize::base64::FromBase64Error;
 use self::serialize::hex;
 use self::serialize::hex::ToHex;
 use std::fmt;
@@ -80,6 +82,7 @@ impl BitXor<Bytes, Bytes> for Bytes {
 }
 
 pub type FromHexResult = Result<Bytes, hex::FromHexError>;
+pub type FromBase64Result = Result<Bytes, FromBase64Error>;
 
 impl hex::ToHex for Bytes {
   fn to_hex(&self) -> String {
@@ -109,6 +112,13 @@ impl Bytes {
 
   pub fn from_hex_string(s: &String) -> FromHexResult {
     Bytes::from_hex(&s.as_slice())
+  }
+
+  pub fn from_base64<T: FromBase64>(s: &T) -> FromBase64Result {
+    match s.from_base64() {
+      Ok(bvec) => Ok(Bytes(bvec)),
+      Err(err) => Err(err)
+    }
   }
 
   pub fn base64(&self) -> String {
