@@ -8,6 +8,9 @@ extern crate cryptopals;
 use std::io::File;
 
 use cryptopals::Bytes;
+//use cryptopals::combinations::Range;
+use cryptopals::combinations::Random;
+
 //use cryptopals::byte;
 //use cryptopals::analysis::english;
 
@@ -29,6 +32,17 @@ fn main() {
                   .expect("failed to read input file");
 
   assert!(ham_test());
+  let decoded = Bytes::from_base64(&input.as_slice()).unwrap();
 
-  println!("{}", input.get(0));
+  let sz = 2;
+
+  for (a, b) in Random::new(0, decoded.len()/sz).take(100) {
+    let start_a = a*sz;
+    let start_b = b*sz;
+    let end_a = start_a + sz;
+    let end_b = start_b + sz;
+
+    println!("{}->{} vs {}->{}", start_a, end_a, start_b, end_b);
+  }
+  //println!("{}", decoded);
 }

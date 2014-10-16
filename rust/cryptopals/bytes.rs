@@ -10,6 +10,7 @@ use self::serialize::hex::ToHex;
 use std::fmt;
 use std::vec::Vec;
 use std::path::BytesContainer;
+use std::collections::Collection;
 
 use byte;
 use byte::Byte;
@@ -19,6 +20,13 @@ use byte::NormalHistogram;
 
 #[deriving(PartialEq, Eq)]
 pub struct Bytes(pub Vec<u8>);
+
+impl Collection for Bytes {
+  fn len(&self) -> uint {
+    let Bytes(ref v) = *self;
+    v.len()
+  }
+}
 
 impl fmt::Show for Bytes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
