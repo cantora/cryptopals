@@ -70,11 +70,11 @@ impl BitXor<Bytes, Bytes> for Bytes {
     let mut out_v: Vec<u8> = Vec::with_capacity(max_v.len());
 
     for i in range(0, min_v.len()) {
-      let b = *max_v.get(i) ^ *min_v.get(i);
+      let b = max_v[i] ^ min_v[i];
       out_v.push(b);
     }
     for j in range(min_v.len(), max_v.len()) {
-      out_v.push(*max_v.get(j));
+      out_v.push(max_v[j]);
     }
 
     return Bytes(out_v);
@@ -97,7 +97,7 @@ impl Bytes {
   }
 
   pub fn from_slice<'a>(bs: &'a [u8]) -> Bytes {
-    Bytes(Vec::from_slice(bs))
+    Bytes(bs.to_vec())
   }
 
   pub fn from_str<'a>(bs: &'a str) -> Bytes {
@@ -152,7 +152,7 @@ impl Bytes {
     let mut out_v: Vec<u8> = Vec::with_capacity(vec1.len());
 
     for i in range(0, vec1.len()) {
-      let b = *vec1.get(i) ^ *vec_rhs.get(i%modulo);
+      let b = vec1[i] ^ vec_rhs[i%modulo];
       out_v.push(b);
     }
 
@@ -204,7 +204,7 @@ impl Bytes {
   }
 
   pub fn is_printable_ascii(&self) -> bool {
-    !self.has_byte_class(byte::Control | byte::HighBit)
+    !self.has_byte_class(byte::CONTROL | byte::HIGHBIT)
   }
 
   pub fn hist(&self) -> Histogram {

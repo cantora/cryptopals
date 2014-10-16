@@ -1,4 +1,4 @@
-#![crate_id = "cryptopals#0.0.0"]
+#![crate_name = "cryptopals"]
 #![crate_type = "rlib"]
 #![feature(macro_rules)]
 #![feature(globs)]

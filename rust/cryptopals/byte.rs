@@ -17,9 +17,9 @@ impl fmt::Show for Byte {
     let Byte(b) = *self;
 
     match b {
-      0x5c       => write!(f, "\\\\"),
-      0x20..0x7e => write!(f, "{:c}", Byte(b)),
-      _          => write!(f, "\\x{:02x}", b)
+      0x5c        => write!(f, "\\\\"),
+      0x20...0x7e => write!(f, "{:c}", Byte(b)),
+      _           => write!(f, "\\x{:02x}", b)
     }
   }
 }
@@ -35,12 +35,12 @@ impl BitXor<Byte, Byte> for Byte {
 
 bitflags!(
   flags ClassFlags: uint {
-    static WhiteSpace    = 0x01,
-    static Alphabetic    = 0x02,
-    static Numeric       = 0x04,
-    static Control       = 0x08,
-    static Punctuation   = 0x10,
-    static HighBit       = 0x20
+    static WHITESPACE    = 0x01,
+    static ALPHABETIC    = 0x02,
+    static NUMERIC       = 0x04,
+    static CONTROL       = 0x08,
+    static PUNCTUATION   = 0x10,
+    static HIGHBIT       = 0x20
   }
 )
 
@@ -49,21 +49,21 @@ impl Byte {
     let Byte(b) = *self;
 
     match b {
-      0x00..0x08     => Control,
-      0x09..0x0b     => WhiteSpace,
-      0x0c           => Control,
-      0x0d           => WhiteSpace,
-      0x0e..0x1f     => Control,
-      0x20           => WhiteSpace,
-      0x21..0x2f     => Punctuation,
-      0x30..0x39     => Numeric,
-      0x3a..0x40     => Punctuation,
-      0x41..0x5a     => Alphabetic,
-      0x5b..0x60     => Punctuation,
-      0x61..0x7a     => Alphabetic,
-      0x7b..0x7e     => Punctuation,
-      0x7f           => Control,
-      _              => HighBit
+      0x00...0x08     => CONTROL,
+      0x09...0x0b     => WHITESPACE,
+      0x0c            => CONTROL,
+      0x0d            => WHITESPACE,
+      0x0e...0x1f     => CONTROL,
+      0x20            => WHITESPACE,
+      0x21...0x2f     => PUNCTUATION,
+      0x30...0x39     => NUMERIC,
+      0x3a...0x40     => PUNCTUATION,
+      0x41...0x5a     => ALPHABETIC,
+      0x5b...0x60     => PUNCTUATION,
+      0x61...0x7a     => ALPHABETIC,
+      0x7b...0x7e     => PUNCTUATION,
+      0x7f            => CONTROL,
+      _               => HIGHBIT
     }
   }
 }
