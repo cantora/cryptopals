@@ -17,6 +17,7 @@ use byte::Byte;
 use byte::ClassFlags;
 use byte::Histogram;
 use byte::NormalHistogram;
+use combinations;
 
 #[deriving(PartialEq, Eq)]
 pub struct Bytes(pub Vec<u8>);
@@ -223,5 +224,6 @@ impl Bytes {
   pub fn normal_hist(&self) -> NormalHistogram {
     NormalHistogram::from_histogram(&self.hist())
   }
+
 }
 

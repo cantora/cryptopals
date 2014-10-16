@@ -1,6 +1,7 @@
 use std::iter;
 use std::rand;
 use std::collections::BTreeSet;
+use std::vec;
 
 pub struct Range {
   primary: iter::Range<uint>,
@@ -97,3 +98,44 @@ impl iter::Iterator<(uint, uint)> for Random {
     Some(tpl)
   }
 }
+
+pub struct RandomSlice<'a, T: 'a> {
+  modulus: uint,
+  vec: &'a vec::Vec<T>,
+  rnd: Random
+}
+
+impl<'a, T> RandomSlice<'a, T> {
+  pub fn new(modulus: uint, vec: &'a vec::Vec<T>) -> RandomSlice<'a, T> {
+    assert!(modulus > 1);
+    let vlen = vec.len();
+    assert!(vlen > 2*modulus);
+
+    let random_sz = vlen/modulus;
+    assert!(random_sz >= 2);
+
+    RandomSlice {
+      modulus: modulus,
+      vec: vec,
+      rnd: Random::new(0, random_sz)
+    }
+  }
+}
+
+impl<'a, T> iter::Iterator<(&'a [T], &'a [T])> for RandomSlice<'a, T> {
+  fn next(&mut self) -> Option<(&'a [T], &'a [T])> {
+    match self.rnd.next() {
+      Some((a, b)) => {
+        let start_a = a*self.modulus;
+        let start_b = b*self.modulus;
+        let end_a   = start_a + self.modulus;
+        let end_b   = start_b + self.modulus;
+        let sl_a    = self.vec.slice(start_a, end_a);
+        let sl_b    = self.vec.slice(start_b, end_b);
+        Some((sl_a, sl_b))
+      },
+      _            => None
+    }
+  }
+}
+
