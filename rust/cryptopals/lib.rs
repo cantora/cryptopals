@@ -13,6 +13,7 @@ pub mod bytes;
 pub mod util;
 pub mod analysis;
 pub mod combinations;
+pub mod iter;
 
 #[macro_export]
 macro_rules! errln(

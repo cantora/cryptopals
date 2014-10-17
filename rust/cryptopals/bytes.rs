@@ -9,6 +9,7 @@ use self::serialize::hex;
 use self::serialize::hex::ToHex;
 use std::fmt;
 use std::vec::Vec;
+use std::slice;
 use std::path::BytesContainer;
 use std::collections::Collection;
 
@@ -17,7 +18,8 @@ use byte::Byte;
 use byte::ClassFlags;
 use byte::Histogram;
 use byte::NormalHistogram;
-use combinations;
+
+use iter::Modulo;
 
 #[deriving(PartialEq, Eq)]
 pub struct Bytes(pub Vec<u8>);
@@ -168,7 +170,7 @@ impl Bytes {
     Ok(Bytes(out_v))
   }
 
-  pub fn n_common_bits(&self, rhs: &Bytes) -> Result<uint, &str> {
+  pub fn n_diff_bits(&self, rhs: &Bytes) -> Result<uint, &str> {
     let Bytes(ref vec1) = *self;
     let Bytes(ref vec2) = *rhs;
     let len = vec1.len();
@@ -178,10 +180,20 @@ impl Bytes {
     }
 
     if len < 1 {
-      return Ok(0);
+      return Err("self.len() == 0");
     }
 
     Ok((*self ^ *rhs).n_set_bits())
+  }
+
+  pub fn hamming_distance(&self, rhs: &Bytes) -> Result<f64, &str> {
+    match self.n_diff_bits(rhs) {
+      Ok(n)          => {
+        let sz = self.len()*8;
+        Ok((n as f64)/(sz as f64))
+      },
+      Err(e)         => Err(e)                
+    }
   }
 
   pub fn n_set_bits(&self) -> uint {
@@ -225,5 +237,10 @@ impl Bytes {
     NormalHistogram::from_histogram(&self.hist())
   }
 
+  pub fn transposed_n<T: Iterator<u8>>(&self, modulus: uint, n: uint)
+         -> Modulo<T> {
+    let Bytes(ref vec) = *self;
+    Modulo::new(modulus, vec.iter().skip(n))
+  }
 }
 
