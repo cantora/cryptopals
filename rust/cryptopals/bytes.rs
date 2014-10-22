@@ -12,6 +12,7 @@ use std::vec::Vec;
 use std::slice;
 use std::path::BytesContainer;
 use std::collections::Collection;
+use std::iter::Skip;
 
 use byte;
 use byte::Byte;
@@ -20,6 +21,7 @@ use byte::Histogram;
 use byte::NormalHistogram;
 
 use iter::Modulo;
+use iter::Transposed;
 
 #[deriving(PartialEq, Eq)]
 pub struct Bytes(pub Vec<u8>);
@@ -107,6 +109,10 @@ impl Bytes {
     Bytes(Vec::new())
   }
 
+  pub fn from_byte(b: u8) -> Bytes {
+    Bytes::from_slice([b])
+  }
+
   pub fn from_slice<'a>(bs: &'a [u8]) -> Bytes {
     Bytes(bs.to_vec())
   }
@@ -148,7 +154,7 @@ impl Bytes {
     self.xor_bytes(&Bytes::from_slice([rhs])).unwrap()
   }
 
-  pub fn xor_bytes(&self, rhs: &Bytes) -> Result<Bytes, &str> {
+  pub fn xor_bytes(&self, rhs: &Bytes) -> Result<Bytes, &'static str> {
     let Bytes(ref vec1) = *self;
     let Bytes(ref vec_rhs) = *rhs;
     let modulo = vec_rhs.len();
@@ -237,10 +243,14 @@ impl Bytes {
     NormalHistogram::from_histogram(&self.hist())
   }
 
-  pub fn transposed_n<T: Iterator<u8>>(&self, modulus: uint, n: uint)
-         -> Modulo<T> {
+  pub fn transposed_n(&self, modulus: uint, n: uint)
+         -> Modulo<Skip<slice::Items<u8>>> {
     let Bytes(ref vec) = *self;
     Modulo::new(modulus, vec.iter().skip(n))
   }
-}
 
+  pub fn transposed(&self, modulus: uint) -> Transposed<u8> {
+    let Bytes(ref vec) = *self;
+    Transposed::new(vec, modulus)
+  }
+}

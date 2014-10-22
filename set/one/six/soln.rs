@@ -8,12 +8,11 @@ extern crate cryptopals;
 use std::io::File;
 use std::vec;
 
+use cryptopals::byte;
+use cryptopals::byte::Byte;
 use cryptopals::Bytes;
-//use cryptopals::combinations::Range;
 use cryptopals::combinations::RandomSlice;
-
-//use cryptopals::byte;
-//use cryptopals::analysis::english;
+use cryptopals::analysis::english::find::key;
 
 fn ham_test() -> bool {
   let a = Bytes::from_str("this is a test");
@@ -46,6 +45,12 @@ fn main() {
                   .expect("failed to read input file");
   let mut key_sz     = 2u;
   let mut key_sz_avg = 1.0f64;
+  let mut idx = 0u;
+  let mut keys: Vec<Bytes> = Vec::new();
+
+  for b in byte::all() {
+    keys.push(Bytes::from_byte(b));
+  }
 
   assert!(ham_test());
   let decoded = Bytes::from_base64(&input.as_slice()).unwrap();
@@ -63,5 +68,26 @@ fn main() {
 
   println!("best key size ({}): {}", key_sz_avg, key_sz);
 
-  
+  let mut keybytes: Vec<u8> = Vec::new();
+  for vec in decoded.transposed(key_sz) {
+    let bs = Bytes(vec);
+    let (score, _, key) = key::best_xor(
+      &bs,
+      keys.as_slice()
+    ).unwrap();
+    let Bytes(ref key_vec) = *key;
+    assert!(key_vec.len() == 1);
+    let kb = key_vec[0];
+
+    println!("key byte {}: {}", idx, Byte(kb));
+    keybytes.push(kb);
+    idx += 1;
+  }
+
+  let kbs = Bytes(keybytes);
+  println!("kbs: {}", kbs);
+
+  println!("decryption:");
+  let decrypted = decoded.xor_bytes(&kbs).unwrap();
+  println!("{}", decrypted);
 }

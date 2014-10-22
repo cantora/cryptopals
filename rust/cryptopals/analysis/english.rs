@@ -117,3 +117,24 @@ impl<T: PartialEq> iter::Iterator<(f64, Bytes, T)>
     hp.pop()
   }
 }
+
+pub mod find {
+pub mod key {
+  use bytes::Bytes;
+  pub fn best_xor<'a>(bs: &Bytes, keys: &'a [Bytes]) -> Result<(f64, Bytes, &'a Bytes), &'static str> {
+    let mut engl_heap = super::super::HeapByChi2::new();
+  
+    for key in keys.iter() {
+      match bs.xor_bytes(key) {
+        Ok(xord) => { engl_heap.add(xord, key); },
+        Err(e)   => return Err(e)
+      }      
+    }
+  
+    match engl_heap.pop() {
+      Some(tpl) => Ok(tpl),
+      None      => Err("keys was empty")
+    }
+  }
+} /* mod key */  
+} /* mod find */
