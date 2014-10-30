@@ -104,6 +104,13 @@ impl hex::ToHex for Bytes {
   }
 }
 
+impl AsSlice<u8> for Bytes {
+  fn as_slice<'a>(&'a self) -> &'a [u8] {
+    let Bytes(ref v) = *self;
+    v.as_slice()
+  }
+}
+
 impl Bytes {
   pub fn new() -> Bytes {
     Bytes(Vec::new())

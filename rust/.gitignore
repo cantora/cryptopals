@@ -1,4 +1,5 @@
 *.rlib
 scratch
 rust-mdo
-static_mdo
+static_mdo/
+rust-openssl/
