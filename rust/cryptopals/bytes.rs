@@ -23,7 +23,7 @@ use byte::NormalHistogram;
 use iter::Modulo;
 use iter::Transposed;
 
-#[deriving(PartialEq, Eq)]
+#[deriving(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
 impl Collection for Bytes {
