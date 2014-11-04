@@ -145,6 +145,11 @@ impl Bytes {
     }
   }
 
+  pub fn mut_vec<'a>(&'a mut self) -> &'a mut Vec<u8> {
+    let Bytes(ref mut bv) = *self;
+    bv
+  }
+
   pub fn base64(&self) -> String {
     self.to_base64(base64::Config {
       char_set: base64::Standard,

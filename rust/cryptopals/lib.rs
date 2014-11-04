@@ -14,8 +14,8 @@ pub mod util;
 pub mod analysis;
 pub mod combinations;
 pub mod iter;
-pub mod histogram;
 pub mod entropy;
+pub mod padding;
 
 #[macro_export]
 macro_rules! errln(
