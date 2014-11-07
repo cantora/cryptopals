@@ -11,7 +11,7 @@ all: .libcryptopals.rlib .libstatic_mdo.rlib libopenssl.rlib
 
 .libcryptopals.rlib: makefile $(CRYPTOPALS_SRC)
 	rm -f libcryptopals*.rlib
-	rustc --crate-type rlib cryptopals/lib.rs
+	rustc -L . --crate-type rlib cryptopals/lib.rs
 	touch $@
 
 .PHONY: expanded-cryptopals
