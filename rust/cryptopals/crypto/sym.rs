@@ -84,21 +84,59 @@ pub mod cbc {
     }
   } /* impl Context */
 
+  pub trait Stream {
+    fn push(&mut self, b: u8) -> Option<Vec<u8>>;
+    fn iter<'a, T: iter::Iterator<&'a u8>>(&'a mut self,
+                                           itr: &'a mut T)
+       -> Iterator<'a, T, Self> {
+      Iterator::new(self, itr)
+    }
+  }
+
+  pub struct EncStream {
+    cbc: Context,
+    buf: Vec<u8>
+  }
+
+  impl Stream for EncStream {
+    fn push(&mut self, b: u8) -> Option<Vec<u8>> {
+      self.buf.push(b);
+      if self.buf.len() < self.cbc.block_len() {
+        return None;
+      }
+
+      let result = Some(self.cbc.process(self.buf.as_slice()));
+      self.buf.clear();
+
+      result
+    }
+  }
+
+  impl EncStream {
+    pub fn new(cbc: Context) -> EncStream {
+      EncStream { cbc: cbc, buf: Vec::new() }
+    }
+
+    pub fn aes_128_enc(key: &[u8], iv: Vec<u8>) -> EncStream {
+      EncStream::new(Context::aes_128_enc(key, iv))
+    }
+
+    pub fn finish(mut self) -> Vec<u8> {
+      let blen = self.cbc.block_len();
+      assert!(blen < 256);
+      pkcs7::pad(&mut self.buf, blen as u8);
+      println!("padded block: {}", Bytes(self.buf.clone()));
+      self.cbc.process(self.buf.as_slice())
+    }
+  }
+
   pub struct DecStream {
     cbc: Context,
     buf: Vec<u8>
   }
 
-  impl DecStream {
-    pub fn new(cbc: Context) -> DecStream {
-      DecStream { cbc: cbc, buf: Vec::new() }
-    }
-
-    pub fn aes_128_dec(key: &[u8], iv: Vec<u8>) -> DecStream {
-      DecStream::new(Context::aes_128_dec(key, iv))
-    }
-
-    pub fn push(&mut self, b: u8) -> Option<Vec<u8>> {
+  impl Stream for DecStream {
+    fn push(&mut self, b: u8) -> Option<Vec<u8>> {
       let blen = self.cbc.block_len();
       if self.buf.len() < blen {
         self.buf.push(b);
@@ -110,6 +148,16 @@ pub mod cbc {
         self.buf.push(b);
         result
       }      
+    }
+  }
+
+  impl DecStream {
+    pub fn new(cbc: Context) -> DecStream {
+      DecStream { cbc: cbc, buf: Vec::new() }
+    }
+
+    pub fn aes_128_dec(key: &[u8], iv: Vec<u8>) -> DecStream {
+      DecStream::new(Context::aes_128_dec(key, iv))
     }
 
     pub fn finish(mut self) -> Result<Vec<u8>, Vec<u8>> {
@@ -124,29 +172,28 @@ pub mod cbc {
         Err(self.buf)
       }
     }
-
-    pub fn iter<'a, T: iter::Iterator<&'a u8>>(&'a mut self,
-                                               itr: &'a mut T)
-           -> DecIter<'a, T> {
-      DecIter::new(self, itr)
-    }
   }
 
-  pub struct DecIter<'a, T: 'a> {
-    stm: &'a mut DecStream,
+  pub struct Iterator<'a, T: 'a, U: 'a> {
+    stm: &'a mut U,
     itr: &'a mut T
   }
 
-  impl<'a, T: iter::Iterator<&'a u8>> DecIter<'a, T> {
-    pub fn new(stm: &'a mut DecStream, itr: &'a mut T)
-           -> DecIter<'a, T> {
-      DecIter { stm: stm, itr: itr }
+  impl< 'a,
+        T: iter::Iterator<&'a u8>,
+        U: Stream> 
+      Iterator<'a, T, U> {
+    pub fn new(stm: &'a mut U, itr: &'a mut T)
+           -> Iterator<'a, T, U> {
+      Iterator { stm: stm, itr: itr }
     }
   }
 
-  impl<'a, T: iter::Iterator<&'a u8>> 
+  impl< 'a,
+        T: iter::Iterator<&'a u8>,
+        U: Stream>
       iter::Iterator<Vec<u8>>
-      for DecIter<'a, T> {
+      for Iterator<'a, T, U> {
     fn next(&mut self) -> Option<Vec<u8>> {
       loop {
         match self.itr.next() {
