@@ -1,6 +1,12 @@
 use std::iter::Iterator;
-use std::vec::Vec;
 
+//use std::io::IoResult;
+
+/*******************************************
+ * Modulo iterator
+ * ---------------
+ * iterate, returning every nth item.
+ */
 pub struct Modulo<U> {
   idx: uint,
   modulus: uint,
@@ -32,6 +38,17 @@ impl<T, U: Iterator<T>> Iterator<T> for Modulo<U> {
     self.iter.next()
   }
 }
+
+/*******************************************
+ * Transposed iterator
+ * ---------------
+ * iterate over the elements of a transposed vector.
+ * example:
+ * abcdefghijklmnopqrstuvwxyz
+ *           ||
+ *           \/
+ * "adgjmpsvy", "behknqtwz", "cfilorux"
+ */
 
 pub struct Transposed<'a, T: 'a> {
   idx: uint,
@@ -76,3 +93,24 @@ impl<'a, T: Clone> Iterator<Vec<T>> for Transposed<'a, T> {
     Some(new_v)
   }
 }
+
+/*******************************************
+ * block reader
+ * ---------------
+ * iterate of blocks from buffered reader
+ */
+
+/*
+struct BlockReader<'a, T> (pub T, pub &'a mut [u8]);
+
+impl<'a, T: Reader> Iterator<IoResult<uint>> for BlockReader<'a, T> {
+  fn next(&mut self) -> Option<IoResult<uint>> {
+    let BlockReader(ref mut rdr, ref mut buf) = *self;
+
+    match rdr.read(*buf) {
+      Ok(amt) => Some(Ok(amt)),
+      Err(_)  => None
+    }
+  }
+}
+*/

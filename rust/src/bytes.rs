@@ -11,8 +11,8 @@ use std::fmt;
 use std::vec::Vec;
 use std::slice;
 use std::path::BytesContainer;
-use std::collections::Collection;
 use std::iter::Skip;
+use std::rand;
 
 use byte;
 use byte::Byte;
@@ -25,13 +25,6 @@ use iter::Transposed;
 
 #[deriving(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
-
-impl Collection for Bytes {
-  fn len(&self) -> uint {
-    let Bytes(ref v) = *self;
-    v.len()
-  }
-}
 
 impl fmt::Show for Bytes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -117,7 +110,7 @@ impl Bytes {
   }
 
   pub fn from_byte(b: u8) -> Bytes {
-    Bytes::from_slice([b])
+    Bytes::from_slice(&[b])
   }
 
   pub fn from_slice<'a>(bs: &'a [u8]) -> Bytes {
@@ -128,14 +121,14 @@ impl Bytes {
     Bytes::from_slice(bs.as_bytes())
   }
 
-  pub fn from_hex<T: hex::FromHex>(input: &T) -> FromHexResult {
+  pub fn from_hex<Sized? T: hex::FromHex>(input: &T) -> FromHexResult {
     input.from_hex().and_then(|bvec| {
       Ok(Bytes(bvec))
     })
   }
 
   pub fn from_hex_string(s: &String) -> FromHexResult {
-    Bytes::from_hex(&s.as_slice())
+    Bytes::from_hex(s.as_slice())
   }
 
   pub fn from_base64<T: FromBase64>(s: &T) -> FromBase64Result {
@@ -143,6 +136,24 @@ impl Bytes {
       Ok(bvec) => Ok(Bytes(bvec)),
       Err(err) => Err(err)
     }
+  }
+
+  pub fn random(len: uint) -> Bytes {
+    if len < 1 {
+      return Bytes::new();
+    }
+
+    let mut v: Vec<u8> = Vec::new();
+    for _ in range(0, len) {
+      v.push(rand::random());
+    }
+
+    Bytes(v)
+  }
+
+  pub fn len(&self) -> uint {
+    let Bytes(ref v) = *self;
+    v.len()
   }
 
   pub fn mut_vec<'a>(&'a mut self) -> &'a mut Vec<u8> {
@@ -168,10 +179,11 @@ impl Bytes {
   }
 
   pub fn xor_byte(&self, rhs: u8) -> Bytes {
-    self.xor_bytes(&Bytes::from_slice([rhs])).unwrap()
+    self.xor_bytes(&Bytes::from_slice(&[rhs])).unwrap()
   }
 
-  pub fn xor_bytes(&self, rhs: &Bytes) -> Result<Bytes, &'static str> {
+  pub fn xor_bytes(&self, rhs: &Bytes)
+         -> Result<Bytes, &'static str> {
     let Bytes(ref vec1) = *self;
     let Bytes(ref vec_rhs) = *rhs;
     let modulo = vec_rhs.len();
@@ -228,8 +240,8 @@ impl Bytes {
   
   
     for b in vec1.iter() {
-      count += bit_count_table[(b&0x0f) as uint] as uint;
-      count += bit_count_table[(b>>4) as uint] as uint;
+      count += bit_count_table[(*b & 0x0f) as uint] as uint;
+      count += bit_count_table[(*b >> 4) as uint] as uint;
     }
 
     count

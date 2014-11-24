@@ -6,7 +6,6 @@ pub enum PaddingError {
 }
 
 pub mod pkcs7 {
-use padding;
 use padding::PaddingError;
 
 pub fn pad(bv: &mut Vec<u8>, block_sz: u8) -> u8 {
@@ -29,7 +28,7 @@ pub fn pad(bv: &mut Vec<u8>, block_sz: u8) -> u8 {
 
 pub fn unpad(bv: &mut Vec<u8>) -> Option<PaddingError> {
   if bv.len() > 255 {
-    return Some(padding::VectorTooLarge);
+    return Some(PaddingError::VectorTooLarge);
   }
 
   let mut plen: Option<u8> = None;
@@ -57,7 +56,7 @@ pub fn unpad(bv: &mut Vec<u8>) -> Option<PaddingError> {
       bv.truncate(bv_len - plen_uint);
       None
     }
-    None      => Some(padding::InvalidPadding)
+    None      => Some(PaddingError::InvalidPadding)
   }
 }
 

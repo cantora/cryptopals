@@ -2,20 +2,20 @@ pub mod mode {
 pub mod cbc {
   extern crate openssl;
   use self::openssl::crypto::symm;
-  use super::super::super::super::crypto;
+  use super::super::super::super::crypto::Direction;
   use padding::pkcs7;
   use bytes::Bytes;
   use std::iter;
 
   pub struct Context {
     crypter: symm::Crypter,
-    dir: crypto::Direction,
+    dir: Direction,
     iv: Bytes
   }
 
   impl Context {
     pub fn new(crypter: symm::Crypter,
-               dir: crypto::Direction,
+               dir: Direction,
                iv: Vec<u8>)
            -> Context {
       Context {
@@ -25,15 +25,15 @@ pub mod cbc {
       }
     }
 
-    fn aes_128_base(dir: crypto::Direction, key: &[u8], iv: Vec<u8>)
+    fn aes_128_base(dir: Direction, key: &[u8], iv: Vec<u8>)
        -> Context {
       assert_eq!(key.len(), 16);
       assert_eq!(iv.len(), 16);
 
       let crypter = symm::Crypter::new(symm::AES_128_ECB);
       let mode = match dir {
-        crypto::Encrypt => symm::Encrypt,
-        crypto::Decrypt => symm::Decrypt
+        Direction::Encrypt => symm::Encrypt,
+        Direction::Decrypt => symm::Decrypt
       };
 
       crypter.init(mode, key, vec![]);
@@ -42,18 +42,18 @@ pub mod cbc {
     }
 
     pub fn aes_128_enc(key: &[u8], iv: Vec<u8>) -> Context {
-      Context::aes_128_base(crypto::Encrypt, key, iv)
+      Context::aes_128_base(Direction::Encrypt, key, iv)
     }
 
     pub fn aes_128_dec(key: &[u8], iv: Vec<u8>) -> Context {
-      Context::aes_128_base(crypto::Decrypt, key, iv)
+      Context::aes_128_base(Direction::Decrypt, key, iv)
     }
 
     pub fn block_len(&self) -> uint {
       self.iv.len()
     }
 
-    pub fn direction(&self) -> crypto::Direction {
+    pub fn direction(&self) -> Direction {
       self.dir
     }
 
@@ -78,8 +78,8 @@ pub mod cbc {
     pub fn process(&mut self, data: &[u8]) -> Vec<u8> {
       assert_eq!(data.len(), self.block_len());
       match self.dir {
-        crypto::Encrypt => self.process_enc(data),
-        crypto::Decrypt => self.process_dec(data)
+        Direction::Encrypt => self.process_enc(data),
+        Direction::Decrypt => self.process_dec(data)
       }
     }
   } /* impl Context */

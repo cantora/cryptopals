@@ -5,9 +5,9 @@
 
 pub use byte::Byte;
 pub use bytes::Bytes;
-pub use pqueue::PriorityQueue;
+pub use binary_heap::BinaryHeap;
 
-mod pqueue;
+mod binary_heap;
 pub mod byte;
 pub mod bytes;
 pub mod util;

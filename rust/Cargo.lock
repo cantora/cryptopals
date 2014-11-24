@@ -1,0 +1,42 @@
+[root]
+name = "cryptopals"
+version = "0.0.1"
+dependencies = [
+ "openssl 0.0.1 (git+https://github.com/sfackler/rust-openssl.git?ref=b084ddc7b0fe9c7816fef6e415a05db6ec43fb71)",
+]
+
+[[package]]
+name = "libressl-pnacl-sys"
+version = "2.0.1"
+source = "git+https://github.com/DiamondLovesYou/libressl-pnacl-sys.git#9a42eeb52070ae0aa4f666d36198899e1e54cda5"
+dependencies = [
+ "pnacl-build-helper 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "openssl"
+version = "0.0.1"
+source = "git+https://github.com/sfackler/rust-openssl.git?ref=b084ddc7b0fe9c7816fef6e415a05db6ec43fb71#b084ddc7b0fe9c7816fef6e415a05db6ec43fb71"
+dependencies = [
+ "libressl-pnacl-sys 2.0.1 (git+https://github.com/DiamondLovesYou/libressl-pnacl-sys.git)",
+ "openssl-sys 0.0.1 (git+https://github.com/sfackler/rust-openssl.git?ref=b084ddc7b0fe9c7816fef6e415a05db6ec43fb71)",
+]
+
+[[package]]
+name = "openssl-sys"
+version = "0.0.1"
+source = "git+https://github.com/sfackler/rust-openssl.git?ref=b084ddc7b0fe9c7816fef6e415a05db6ec43fb71#b084ddc7b0fe9c7816fef6e415a05db6ec43fb71"
+dependencies = [
+ "pkg-config 0.0.1 (git+https://github.com/alexcrichton/pkg-config-rs)",
+]
+
+[[package]]
+name = "pkg-config"
+version = "0.0.1"
+source = "git+https://github.com/alexcrichton/pkg-config-rs#d24a08d87d63df8dc9526c503944415b86719220"
+
+[[package]]
+name = "pnacl-build-helper"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+

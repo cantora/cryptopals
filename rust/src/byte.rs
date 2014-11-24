@@ -1,8 +1,21 @@
 extern crate std;
 
 use std::fmt;
+use std::rand;
+use std::num::Float;
 
 pub struct Byte(pub u8);
+
+impl rand::Rand for Byte {
+  fn rand<R: rand::Rng>(rng: &mut R) -> Byte {
+    let b: u8 = rand::Rand::rand(rng);
+    Byte(b)
+  }
+}
+
+pub fn random() -> Byte {
+  rand::random()
+}
 
 impl fmt::Char for Byte {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -35,12 +48,12 @@ impl BitXor<Byte, Byte> for Byte {
 
 bitflags!(
   flags ClassFlags: uint {
-    static WHITESPACE    = 0x01,
-    static ALPHABETIC    = 0x02,
-    static NUMERIC       = 0x04,
-    static CONTROL       = 0x08,
-    static PUNCTUATION   = 0x10,
-    static HIGHBIT       = 0x20
+    const WHITESPACE    = 0x01,
+    const ALPHABETIC    = 0x02,
+    const NUMERIC       = 0x04,
+    const CONTROL       = 0x08,
+    const PUNCTUATION   = 0x10,
+    const HIGHBIT       = 0x20
   }
 )
 
@@ -98,7 +111,7 @@ impl PartialEq for Histogram {
       return false;
     }
 
-    self.data != other.data
+    self.data.as_slice() != other.data.as_slice()
   }
 
   fn ne(&self, other: &Histogram) -> bool { !self.eq(other) }
@@ -167,7 +180,7 @@ impl NormalHistogram {
         continue;
       }
 
-      result += std::num::pow(x_i - y_i, 2) / denom;
+      result += (x_i - y_i).powi(2) / denom;
     }
 
     result * 0.5

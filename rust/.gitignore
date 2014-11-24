@@ -3,3 +3,4 @@ scratch
 rust-mdo
 static_mdo/
 rust-openssl/
+target/

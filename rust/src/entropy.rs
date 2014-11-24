@@ -1,5 +1,6 @@
-use std::collections::treemap::TreeMap;
+use std::collections::TreeMap;
 use std::fmt;
+use std::num::Float;
 
 pub struct Analyzer<T> {
   map: TreeMap<T, uint>,
@@ -14,7 +15,7 @@ impl<T: Ord> Analyzer<T> {
   }
 
   pub fn add(&mut self, symbol: T) -> uint {
-    let new_count = match self.map.pop(&symbol) {
+    let new_count = match self.map.remove(&symbol) {
       Some(count) => count + 1,
       None        => 1u
     };

@@ -2,7 +2,7 @@ extern crate std;
 use std::iter;
 
 use bytes::Bytes;
-use pqueue::PriorityQueue;
+use binary_heap::BinaryHeap;
 use util::PQCell;
 use byte::NormalHistogram;
 
@@ -59,7 +59,7 @@ struct HeapByChi2Data<T> {
 }
 
 pub struct HeapByChi2<T>(
-  pub PriorityQueue<
+  pub BinaryHeap<
         PQCell<
           f64,
           HeapByChi2Data<T>
@@ -70,7 +70,7 @@ pub struct HeapByChi2<T>(
 impl<T: PartialEq> HeapByChi2<T> {
 
   pub fn new() -> HeapByChi2<T> {
-    HeapByChi2(PriorityQueue::new())
+    HeapByChi2(BinaryHeap::new())
   }
 
   pub fn add(&mut self, bs: Bytes, metadata: T) -> f64 {

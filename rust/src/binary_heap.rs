@@ -19,14 +19,14 @@
 //!
 //! This is a larger example which implements [Dijkstra's algorithm][dijkstra]
 //! to solve the [shortest path problem][sssp] on a [directed graph][dir_graph].
-//! It showcases how to use the `PriorityQueue` with custom types.
+//! It showcases how to use the `BinaryHeap` with custom types.
 //!
 //! [dijkstra]: http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
 //! [sssp]: http://en.wikipedia.org/wiki/Shortest_path_problem
 //! [dir_graph]: http://en.wikipedia.org/wiki/Directed_graph
 //!
 //! ```
-//! use std::collections::PriorityQueue;
+//! use std::collections::BinaryHeap;
 //! use std::uint;
 //!
 //! #[deriving(Eq, PartialEq)]
@@ -68,15 +68,15 @@
 //!     // dist[node] = current shortest distance from `start` to `node`
 //!     let mut dist = Vec::from_elem(adj_list.len(), uint::MAX);
 //!
-//!     let mut pq = PriorityQueue::new();
+//!     let mut heap = BinaryHeap::new();
 //!
 //!     // We're at `start`, with a zero cost
-//!     *dist.get_mut(start) = 0u;
-//!     pq.push(State { cost: 0u, position: start });
+//!     dist[start] = 0u;
+//!     heap.push(State { cost: 0u, position: start });
 //!
 //!     // Examine the frontier with lower cost nodes first (min-heap)
 //!     loop {
-//!         let State { cost, position } = match pq.pop() {
+//!         let State { cost, position } = match heap.pop() {
 //!             None => break, // empty
 //!             Some(s) => s
 //!         };
@@ -94,9 +94,9 @@
 //!
 //!             // If so, add it to the frontier and continue
 //!             if next.cost < dist[next.position] {
-//!                 pq.push(next);
+//!                 heap.push(next);
 //!                 // Relaxation, we have now found a better way
-//!                 *dist.get_mut(next.position) = next.cost;
+//!                 dist[next.position] = next.cost;
 //!             }
 //!         }
 //!     }
@@ -151,76 +151,69 @@
 //! }
 //! ```
 
-#![allow(missing_doc)]
+#![allow(missing_docs)]
 
 use std::default::Default;
 use std::mem::{zeroed, replace, swap};
 use std::ptr;
 
-use std::collections::{Mutable, MutableSeq};
 use std::slice;
 use std::vec::Vec;
+
+// FIXME(conventions): implement into_iter
 
 /// A priority queue implemented with a binary heap.
 ///
 /// This will be a max-heap.
 #[deriving(Clone)]
-pub struct PriorityQueue<T> {
+pub struct BinaryHeap<T> {
     data: Vec<T>,
 }
 
-impl<T: PartialOrd> Collection for PriorityQueue<T> {
-    /// Returns the length of the queue.
-    fn len(&self) -> uint { self.data.len() }
-}
-
-impl<T: PartialOrd> Mutable for PriorityQueue<T> {
-    /// Drops all items from the queue.
-    fn clear(&mut self) { self.data.truncate(0) }
-}
-
-impl<T: PartialOrd> Default for PriorityQueue<T> {
+impl<T: PartialOrd> Default for BinaryHeap<T> {
     #[inline]
-    fn default() -> PriorityQueue<T> { PriorityQueue::new() }
+    fn default() -> BinaryHeap<T> { BinaryHeap::new() }
 }
 
-impl<T: PartialOrd> PriorityQueue<T> {
-    /// Creates an empty `PriorityQueue` as a max-heap.
+impl<T: PartialOrd> BinaryHeap<T> {
+    /// Creates an empty `BinaryHeap` as a max-heap.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
-    /// let pq: PriorityQueue<uint> = PriorityQueue::new();
+    /// use std::collections::BinaryHeap;
+    /// let heap: BinaryHeap<uint> = BinaryHeap::new();
     /// ```
-    pub fn new() -> PriorityQueue<T> { PriorityQueue{data: vec!(),} }
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn new() -> BinaryHeap<T> { BinaryHeap{data: vec!(),} }
 
-    /// Creates an empty `PriorityQueue` with a specific capacity.
+    /// Creates an empty `BinaryHeap` with a specific capacity.
     /// This preallocates enough memory for `capacity` elements,
-    /// so that the `PriorityQueue` does not have to be reallocated
+    /// so that the `BinaryHeap` does not have to be reallocated
     /// until it contains at least that many values.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
-    /// let pq: PriorityQueue<uint> = PriorityQueue::with_capacity(10u);
+    /// use std::collections::BinaryHeap;
+    /// let heap: BinaryHeap<uint> = BinaryHeap::with_capacity(10u);
     /// ```
-    pub fn with_capacity(capacity: uint) -> PriorityQueue<T> {
-        PriorityQueue { data: Vec::with_capacity(capacity) }
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn with_capacity(capacity: uint) -> BinaryHeap<T> {
+        BinaryHeap { data: Vec::with_capacity(capacity) }
     }
 
-    /// Creates a `PriorityQueue` from a vector. This is sometimes called
+    /// Creates a `BinaryHeap` from a vector. This is sometimes called
     /// `heapifying` the vector.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
-    /// let pq = PriorityQueue::from_vec(vec![9i, 1, 2, 7, 3, 2]);
+    /// use std::collections::BinaryHeap;
+    /// let heap = BinaryHeap::from_vec(vec![9i, 1, 2, 7, 3, 2]);
     /// ```
-    pub fn from_vec(xs: Vec<T>) -> PriorityQueue<T> {
-        let mut q = PriorityQueue{data: xs,};
+    pub fn from_vec(xs: Vec<T>) -> BinaryHeap<T> {
+        let mut q = BinaryHeap{data: xs,};
         let mut n = q.len() / 2;
         while n > 0 {
             n -= 1;
@@ -235,14 +228,15 @@ impl<T: PartialOrd> PriorityQueue<T> {
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
-    /// let pq = PriorityQueue::from_vec(vec![1i, 2, 3, 4]);
+    /// use std::collections::BinaryHeap;
+    /// let heap = BinaryHeap::from_vec(vec![1i, 2, 3, 4]);
     ///
     /// // Print 1, 2, 3, 4 in arbitrary order
-    /// for x in pq.iter() {
+    /// for x in heap.iter() {
     ///     println!("{}", x);
     /// }
     /// ```
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
     pub fn iter<'a>(&'a self) -> Items<'a, T> {
         Items { iter: self.data.iter() }
     }
@@ -252,64 +246,82 @@ impl<T: PartialOrd> PriorityQueue<T> {
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq = PriorityQueue::new();
-    /// assert_eq!(pq.top(), None);
+    /// let mut heap = BinaryHeap::new();
+    /// assert_eq!(heap.top(), None);
     ///
-    /// pq.push(1i);
-    /// pq.push(5i);
-    /// pq.push(2i);
-    /// assert_eq!(pq.top(), Some(&5i));
+    /// heap.push(1i);
+    /// heap.push(5i);
+    /// heap.push(2i);
+    /// assert_eq!(heap.top(), Some(&5i));
     ///
     /// ```
     pub fn top<'a>(&'a self) -> Option<&'a T> {
         if self.is_empty() { None } else { Some(&self.data[0]) }
     }
 
-    #[deprecated="renamed to `top`"]
-    pub fn maybe_top<'a>(&'a self) -> Option<&'a T> { self.top() }
-
     /// Returns the number of elements the queue can hold without reallocating.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let pq: PriorityQueue<uint> = PriorityQueue::with_capacity(100u);
-    /// assert!(pq.capacity() >= 100u);
+    /// let heap: BinaryHeap<uint> = BinaryHeap::with_capacity(100u);
+    /// assert!(heap.capacity() >= 100u);
     /// ```
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
     pub fn capacity(&self) -> uint { self.data.capacity() }
 
-    /// Reserves capacity for exactly `n` elements in the `PriorityQueue`.
-    /// Do nothing if the capacity is already sufficient.
+    /// Reserves the minimum capacity for exactly `additional` more elements to be inserted in the
+    /// given `BinaryHeap`. Does nothing if the capacity is already sufficient.
+    ///
+    /// Note that the allocator may give the collection more space than it requests. Therefore
+    /// capacity can not be relied upon to be precisely minimal. Prefer `reserve` if future
+    /// insertions are expected.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the new capacity overflows `uint`.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq: PriorityQueue<uint> = PriorityQueue::new();
-    /// pq.reserve_exact(100u);
-    /// assert!(pq.capacity() == 100u);
+    /// let mut heap: BinaryHeap<uint> = BinaryHeap::new();
+    /// heap.reserve_exact(100u);
+    /// assert!(heap.capacity() >= 100u);
     /// ```
-    pub fn reserve_exact(&mut self, n: uint) { self.data.reserve_exact(n) }
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn reserve_exact(&mut self, additional: uint) { self.data.reserve_exact(additional) }
 
-    /// Reserves capacity for at least `n` elements in the `PriorityQueue`.
-    /// Do nothing if the capacity is already sufficient.
+    /// Reserves capacity for at least `additional` more elements to be inserted in the
+    /// `BinaryHeap`. The collection may reserve more space to avoid frequent reallocations.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the new capacity overflows `uint`.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq: PriorityQueue<uint> = PriorityQueue::new();
-    /// pq.reserve(100u);
-    /// assert!(pq.capacity() >= 100u);
+    /// let mut heap: BinaryHeap<uint> = BinaryHeap::new();
+    /// heap.reserve(100u);
+    /// assert!(heap.capacity() >= 100u);
     /// ```
-    pub fn reserve(&mut self, n: uint) {
-        self.data.reserve(n)
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn reserve(&mut self, additional: uint) {
+        self.data.reserve(additional)
+    }
+
+    /// Discards as much additional capacity as possible.
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn shrink_to_fit(&mut self) {
+        self.data.shrink_to_fit()
     }
 
     /// Removes the greatest item from a queue and returns it, or `None` if it
@@ -318,20 +330,21 @@ impl<T: PartialOrd> PriorityQueue<T> {
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq = PriorityQueue::from_vec(vec![1i, 3]);
+    /// let mut heap = BinaryHeap::from_vec(vec![1i, 3]);
     ///
-    /// assert_eq!(pq.pop(), Some(3i));
-    /// assert_eq!(pq.pop(), Some(1i));
-    /// assert_eq!(pq.pop(), None);
+    /// assert_eq!(heap.pop(), Some(3i));
+    /// assert_eq!(heap.pop(), Some(1i));
+    /// assert_eq!(heap.pop(), None);
     /// ```
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
     pub fn pop(&mut self) -> Option<T> {
         match self.data.pop() {
             None           => { None }
             Some(mut item) => {
                 if !self.is_empty() {
-                    swap(&mut item, self.data.get_mut(0));
+                    swap(&mut item, &mut self.data[0]);
                     self.siftdown(0);
                 }
                 Some(item)
@@ -339,24 +352,22 @@ impl<T: PartialOrd> PriorityQueue<T> {
         }
     }
 
-    #[deprecated="renamed to `pop`"]
-    pub fn maybe_pop(&mut self) -> Option<T> { self.pop() }
-
     /// Pushes an item onto the queue.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq = PriorityQueue::new();
-    /// pq.push(3i);
-    /// pq.push(5i);
-    /// pq.push(1i);
+    /// let mut heap = BinaryHeap::new();
+    /// heap.push(3i);
+    /// heap.push(5i);
+    /// heap.push(1i);
     ///
-    /// assert_eq!(pq.len(), 3);
-    /// assert_eq!(pq.top(), Some(&5i));
+    /// assert_eq!(heap.len(), 3);
+    /// assert_eq!(heap.top(), Some(&5i));
     /// ```
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
     pub fn push(&mut self, item: T) {
         self.data.push(item);
         let new_len = self.len() - 1;
@@ -369,20 +380,20 @@ impl<T: PartialOrd> PriorityQueue<T> {
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq = PriorityQueue::new();
-    /// pq.push(1i);
-    /// pq.push(5i);
+    /// let mut heap = BinaryHeap::new();
+    /// heap.push(1i);
+    /// heap.push(5i);
     ///
-    /// assert_eq!(pq.push_pop(3i), 5);
-    /// assert_eq!(pq.push_pop(9i), 9);
-    /// assert_eq!(pq.len(), 2);
-    /// assert_eq!(pq.top(), Some(&3i));
+    /// assert_eq!(heap.push_pop(3i), 5);
+    /// assert_eq!(heap.push_pop(9i), 9);
+    /// assert_eq!(heap.len(), 2);
+    /// assert_eq!(heap.top(), Some(&3i));
     /// ```
     pub fn push_pop(&mut self, mut item: T) -> T {
         if !self.is_empty() && *self.top().unwrap() > item {
-            swap(&mut item, self.data.get_mut(0));
+            swap(&mut item, &mut self.data[0]);
             self.siftdown(0);
         }
         item
@@ -395,18 +406,18 @@ impl<T: PartialOrd> PriorityQueue<T> {
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq = PriorityQueue::new();
+    /// let mut heap = BinaryHeap::new();
     ///
-    /// assert_eq!(pq.replace(1i), None);
-    /// assert_eq!(pq.replace(3i), Some(1i));
-    /// assert_eq!(pq.len(), 1);
-    /// assert_eq!(pq.top(), Some(&3i));
+    /// assert_eq!(heap.replace(1i), None);
+    /// assert_eq!(heap.replace(3i), Some(1i));
+    /// assert_eq!(heap.len(), 1);
+    /// assert_eq!(heap.top(), Some(&3i));
     /// ```
     pub fn replace(&mut self, mut item: T) -> Option<T> {
         if !self.is_empty() {
-            swap(&mut item, self.data.get_mut(0));
+            swap(&mut item, &mut self.data[0]);
             self.siftdown(0);
             Some(item)
         } else {
@@ -415,45 +426,37 @@ impl<T: PartialOrd> PriorityQueue<T> {
         }
     }
 
-    #[allow(dead_code)]
-    #[deprecated="renamed to `into_vec`"]
-    fn to_vec(self) -> Vec<T> { self.into_vec() }
-
-    #[allow(dead_code)]
-    #[deprecated="renamed to `into_sorted_vec`"]
-    fn to_sorted_vec(self) -> Vec<T> { self.into_sorted_vec() }
-
-    /// Consumes the `PriorityQueue` and returns the underlying vector
+    /// Consumes the `BinaryHeap` and returns the underlying vector
     /// in arbitrary order.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let pq = PriorityQueue::from_vec(vec![1i, 2, 3, 4, 5, 6, 7]);
-    /// let vec = pq.into_vec();
+    /// let heap = BinaryHeap::from_vec(vec![1i, 2, 3, 4, 5, 6, 7]);
+    /// let vec = heap.into_vec();
     ///
     /// // Will print in some order
     /// for x in vec.iter() {
     ///     println!("{}", x);
     /// }
     /// ```
-    pub fn into_vec(self) -> Vec<T> { let PriorityQueue{data: v} = self; v }
+    pub fn into_vec(self) -> Vec<T> { let BinaryHeap{data: v} = self; v }
 
-    /// Consumes the `PriorityQueue` and returns a vector in sorted
+    /// Consumes the `BinaryHeap` and returns a vector in sorted
     /// (ascending) order.
     ///
     /// # Example
     ///
     /// ```
-    /// use std::collections::PriorityQueue;
+    /// use std::collections::BinaryHeap;
     ///
-    /// let mut pq = PriorityQueue::from_vec(vec![1i, 2, 4, 5, 7]);
-    /// pq.push(6);
-    /// pq.push(3);
+    /// let mut heap = BinaryHeap::from_vec(vec![1i, 2, 4, 5, 7]);
+    /// heap.push(6);
+    /// heap.push(3);
     ///
-    /// let vec = pq.into_sorted_vec();
+    /// let vec = heap.into_sorted_vec();
     /// assert_eq!(vec, vec![1i, 2, 3, 4, 5, 6, 7]);
     /// ```
     pub fn into_sorted_vec(self) -> Vec<T> {
@@ -474,26 +477,26 @@ impl<T: PartialOrd> PriorityQueue<T> {
     // compared to using swaps, which involves twice as many moves.
     fn siftup(&mut self, start: uint, mut pos: uint) {
         unsafe {
-            let new = replace(self.data.get_mut(pos), zeroed());
+            let new = replace(&mut self.data[pos], zeroed());
 
             while pos > start {
                 let parent = (pos - 1) >> 1;
                 if new > self.data[parent] {
-                    let x = replace(self.data.get_mut(parent), zeroed());
-                    ptr::write(self.data.get_mut(pos), x);
+                    let x = replace(&mut self.data[parent], zeroed());
+                    ptr::write(&mut self.data[pos], x);
                     pos = parent;
                     continue
                 }
                 break
             }
-            ptr::write(self.data.get_mut(pos), new);
+            ptr::write(&mut self.data[pos], new);
         }
     }
 
     fn siftdown_range(&mut self, mut pos: uint, end: uint) {
         unsafe {
             let start = pos;
-            let new = replace(self.data.get_mut(pos), zeroed());
+            let new = replace(&mut self.data[pos], zeroed());
 
             let mut child = 2 * pos + 1;
             while child < end {
@@ -501,13 +504,13 @@ impl<T: PartialOrd> PriorityQueue<T> {
                 if right < end && !(self.data[child] > self.data[right]) {
                     child = right;
                 }
-                let x = replace(self.data.get_mut(child), zeroed());
-                ptr::write(self.data.get_mut(pos), x);
+                let x = replace(&mut self.data[child], zeroed());
+                ptr::write(&mut self.data[pos], x);
                 pos = child;
                 child = 2 * pos + 1;
             }
 
-            ptr::write(self.data.get_mut(pos), new);
+            ptr::write(&mut self.data[pos], new);
             self.siftup(start, pos);
         }
     }
@@ -516,9 +519,21 @@ impl<T: PartialOrd> PriorityQueue<T> {
         let len = self.len();
         self.siftdown_range(pos, len);
     }
+
+    /// Returns the length of the queue.
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn len(&self) -> uint { self.data.len() }
+
+    /// Returns true if the queue contains no elements
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
+
+    /// Drops all items from the queue.
+    #[unstable = "matches collection reform specification, waiting for dust to settle"]
+    pub fn clear(&mut self) { self.data.truncate(0) }
 }
 
-/// `PriorityQueue` iterator.
+/// `BinaryHeap` iterator.
 pub struct Items <'a, T:'a> {
     iter: slice::Items<'a, T>,
 }
@@ -531,19 +546,18 @@ impl<'a, T> Iterator<&'a T> for Items<'a, T> {
     fn size_hint(&self) -> (uint, Option<uint>) { self.iter.size_hint() }
 }
 
-impl<T: PartialOrd> FromIterator<T> for PriorityQueue<T> {
-    fn from_iter<Iter: Iterator<T>>(mut iter: Iter) -> PriorityQueue<T> {
+impl<T: PartialOrd> FromIterator<T> for BinaryHeap<T> {
+    fn from_iter<Iter: Iterator<T>>(mut iter: Iter) -> BinaryHeap<T> {
         let vec: Vec<T> = iter.collect();
-        PriorityQueue::from_vec(vec)
+        BinaryHeap::from_vec(vec)
     }
 }
 
-impl<T: PartialOrd> Extendable<T> for PriorityQueue<T> {
+impl<T: PartialOrd> Extend<T> for BinaryHeap<T> {
     fn extend<Iter: Iterator<T>>(&mut self, mut iter: Iter) {
         let (lower, _) = iter.size_hint();
 
-        let len = self.capacity();
-        self.reserve(len + lower);
+        self.reserve(lower);
 
         for elem in iter {
             self.push(elem);
@@ -555,17 +569,16 @@ impl<T: PartialOrd> Extendable<T> for PriorityQueue<T> {
 mod tests {
     use std::prelude::*;
 
-    use priority_queue::PriorityQueue;
+    use super::BinaryHeap;
     use vec::Vec;
-    use MutableSeq;
 
     #[test]
     fn test_iterator() {
         let data = vec!(5i, 9, 3);
         let iterout = [9i, 5, 3];
-        let pq = PriorityQueue::from_vec(data);
+        let heap = BinaryHeap::from_vec(data);
         let mut i = 0;
-        for el in pq.iter() {
+        for el in heap.iter() {
             assert_eq!(*el, iterout[i]);
             i += 1;
         }
@@ -576,7 +589,7 @@ mod tests {
         let data = vec!(2u, 4, 6, 2, 1, 8, 10, 3, 5, 7, 0, 9, 1);
         let mut sorted = data.clone();
         sorted.sort();
-        let mut heap = PriorityQueue::from_vec(data);
+        let mut heap = BinaryHeap::from_vec(data);
         while !heap.is_empty() {
             assert_eq!(heap.top().unwrap(), sorted.last().unwrap());
             assert_eq!(heap.pop().unwrap(), sorted.pop().unwrap());
@@ -585,7 +598,7 @@ mod tests {
 
     #[test]
     fn test_push() {
-        let mut heap = PriorityQueue::from_vec(vec!(2i, 4, 9));
+        let mut heap = BinaryHeap::from_vec(vec!(2i, 4, 9));
         assert_eq!(heap.len(), 3);
         assert!(*heap.top().unwrap() == 9);
         heap.push(11);
@@ -607,7 +620,7 @@ mod tests {
 
     #[test]
     fn test_push_unique() {
-        let mut heap = PriorityQueue::from_vec(vec!(box 2i, box 4, box 9));
+        let mut heap = BinaryHeap::from_vec(vec!(box 2i, box 4, box 9));
         assert_eq!(heap.len(), 3);
         assert!(*heap.top().unwrap() == box 9);
         heap.push(box 11);
@@ -629,7 +642,7 @@ mod tests {
 
     #[test]
     fn test_push_pop() {
-        let mut heap = PriorityQueue::from_vec(vec!(5i, 5, 2, 1, 3));
+        let mut heap = BinaryHeap::from_vec(vec!(5i, 5, 2, 1, 3));
         assert_eq!(heap.len(), 5);
         assert_eq!(heap.push_pop(6), 6);
         assert_eq!(heap.len(), 5);
@@ -643,7 +656,7 @@ mod tests {
 
     #[test]
     fn test_replace() {
-        let mut heap = PriorityQueue::from_vec(vec!(5i, 5, 2, 1, 3));
+        let mut heap = BinaryHeap::from_vec(vec!(5i, 5, 2, 1, 3));
         assert_eq!(heap.len(), 5);
         assert_eq!(heap.replace(6).unwrap(), 5);
         assert_eq!(heap.len(), 5);
@@ -656,7 +669,7 @@ mod tests {
     }
 
     fn check_to_vec(mut data: Vec<int>) {
-        let heap = PriorityQueue::from_vec(data.clone());
+        let heap = BinaryHeap::from_vec(data.clone());
         let mut v = heap.clone().into_vec();
         v.sort();
         data.sort();
@@ -684,19 +697,19 @@ mod tests {
 
     #[test]
     fn test_empty_pop() {
-        let mut heap: PriorityQueue<int> = PriorityQueue::new();
+        let mut heap: BinaryHeap<int> = BinaryHeap::new();
         assert!(heap.pop().is_none());
     }
 
     #[test]
     fn test_empty_top() {
-        let empty: PriorityQueue<int> = PriorityQueue::new();
+        let empty: BinaryHeap<int> = BinaryHeap::new();
         assert!(empty.top().is_none());
     }
 
     #[test]
     fn test_empty_replace() {
-        let mut heap: PriorityQueue<int> = PriorityQueue::new();
+        let mut heap: BinaryHeap<int> = BinaryHeap::new();
         heap.replace(5).is_none();
     }
 
@@ -704,7 +717,7 @@ mod tests {
     fn test_from_iter() {
         let xs = vec!(9u, 8, 7, 6, 5, 4, 3, 2, 1);
 
-        let mut q: PriorityQueue<uint> = xs.as_slice().iter().rev().map(|&x| x).collect();
+        let mut q: BinaryHeap<uint> = xs.as_slice().iter().rev().map(|&x| x).collect();
 
         for &x in xs.iter() {
             assert_eq!(q.pop().unwrap(), x);
