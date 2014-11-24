@@ -1,0 +1,9 @@
+[package]
+name = "cpals-11"
+version = "0.0.1"
+authors = ["ar.cantor@gmail.com"]
+
+[dependencies.cryptopals]
+path = "./rust"
+[dependencies.static_mdo]
+git = "https://github.com/cantora/static_mdo.git"
