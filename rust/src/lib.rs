@@ -17,6 +17,7 @@ pub mod iter;
 pub mod entropy;
 pub mod padding;
 pub mod crypto;
+pub mod block;
 
 #[macro_export]
 macro_rules! errln(

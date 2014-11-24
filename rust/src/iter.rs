@@ -1,7 +1,5 @@
 use std::iter::Iterator;
 
-//use std::io::IoResult;
-
 /*******************************************
  * Modulo iterator
  * ---------------
@@ -94,23 +92,3 @@ impl<'a, T: Clone> Iterator<Vec<T>> for Transposed<'a, T> {
   }
 }
 
-/*******************************************
- * block reader
- * ---------------
- * iterate of blocks from buffered reader
- */
-
-/*
-struct BlockReader<'a, T> (pub T, pub &'a mut [u8]);
-
-impl<'a, T: Reader> Iterator<IoResult<uint>> for BlockReader<'a, T> {
-  fn next(&mut self) -> Option<IoResult<uint>> {
-    let BlockReader(ref mut rdr, ref mut buf) = *self;
-
-    match rdr.read(*buf) {
-      Ok(amt) => Some(Ok(amt)),
-      Err(_)  => None
-    }
-  }
-}
-*/
