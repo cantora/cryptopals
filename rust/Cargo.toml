@@ -6,3 +6,6 @@ authors = ["ar.cantor@gmail.com"]
 [dependencies.openssl]
 git = "https://github.com/sfackler/rust-openssl.git"
 rev = "b084ddc7b0fe9c7816fef6e415a05db6ec43fb71"
+
+[dependencies.static_mdo]
+git = "https://github.com/cantora/static_mdo"
