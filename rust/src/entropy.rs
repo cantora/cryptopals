@@ -1,23 +1,23 @@
-use std::collections::TreeMap;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::num::Float;
 
 pub struct Analyzer<T> {
-  map: TreeMap<T, uint>,
+  map: BTreeMap<T, usize>,
 }
 
 
 impl<T: Ord> Analyzer<T> {
   pub fn new() -> Analyzer<T> {
     Analyzer {
-      map: TreeMap::new()
+      map: BTreeMap::new()
     }
   }
 
-  pub fn add(&mut self, symbol: T) -> uint {
+  pub fn add(&mut self, symbol: T) -> usize {
     let new_count = match self.map.remove(&symbol) {
       Some(count) => count + 1,
-      None        => 1u
+      None        => 1
     };
     self.map.insert(symbol, new_count);
     new_count
@@ -37,7 +37,7 @@ impl<T: Ord> Analyzer<T> {
 
 }
 
-impl<T: fmt::Show + Ord> fmt::Show for Analyzer<T> {
+impl<T: fmt::Debug + Ord> fmt::Debug for Analyzer<T> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     self.map.fmt(f)
   }
@@ -50,8 +50,10 @@ pub fn bits_per_symbol(alphabet_size: u64) -> f64 {
 }
 
 
-pub fn from_iter<T: Ord, U: Iterator<T>>(mut itr: U) -> f64 {
-  let mut ea: Analyzer<T> = Analyzer::new();
+pub fn from_iter<U>(mut itr: U) -> f64 
+       where U:       Iterator,
+             U::Item: Ord      {
+  let mut ea: Analyzer<U::Item> = Analyzer::new();
 
   for symbol in itr {
     ea.add(symbol);

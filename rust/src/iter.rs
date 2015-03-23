@@ -6,13 +6,13 @@ use std::iter::Iterator;
  * iterate, returning every nth item.
  */
 pub struct Modulo<U> {
-  idx: uint,
-  modulus: uint,
+  idx: usize,
+  modulus: usize,
   iter: U
 }
 
 impl<U> Modulo<U> {
-  pub fn new(modulus: uint, iter: U) -> Modulo<U> {
+  pub fn new(modulus: usize, iter: U) -> Modulo<U> {
     assert!(modulus > 0);
 
     Modulo {
@@ -23,8 +23,10 @@ impl<U> Modulo<U> {
   }
 }
 
-impl<T, U: Iterator<T>> Iterator<T> for Modulo<U> {
-  fn next(&mut self) -> Option<T> {
+impl<U: Iterator> Iterator for Modulo<U> {
+  type Item = U::Item;
+
+  fn next(&mut self) -> Option<U::Item> {
     while self.idx < self.modulus {
       if self.iter.next().is_none() {
         return None;
@@ -49,13 +51,13 @@ impl<T, U: Iterator<T>> Iterator<T> for Modulo<U> {
  */
 
 pub struct Transposed<'a, T: 'a> {
-  idx: uint,
-  modulus: uint,
+  idx: usize,
+  modulus: usize,
   v: &'a Vec<T>
 }
 
 impl<'a, T> Transposed<'a, T> {
-  pub fn new(vec: &'a Vec<T>, modulus: uint) -> Transposed<'a, T> {
+  pub fn new(vec: &'a Vec<T>, modulus: usize) -> Transposed<'a, T> {
     assert!(modulus > 1);
     Transposed {
       idx: 0,
@@ -65,7 +67,7 @@ impl<'a, T> Transposed<'a, T> {
   }
 }
 
-impl<'a, T: Clone> Iterator<Vec<T>> for Transposed<'a, T> {
+impl<'a, T: Clone> Iterator for Transposed<'a, T> {
   fn next(&mut self) -> Option<Vec<T>> {
     let mut classes = self.modulus;
 
@@ -91,4 +93,3 @@ impl<'a, T: Clone> Iterator<Vec<T>> for Transposed<'a, T> {
     Some(new_v)
   }
 }
-

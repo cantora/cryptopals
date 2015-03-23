@@ -4,15 +4,15 @@ use std::collections::BTreeSet;
 use std::vec;
 
 pub struct Range {
-  primary: iter::Range<uint>,
-  secondary: iter::Range<uint>,
-  current_x: uint,
-  size: uint
+  primary: iter::Range<usize>,
+  secondary: iter::Range<usize>,
+  current_x: usize,
+  size: usize
 }
 
 impl Range {
-  pub fn new(start: uint, size: uint) -> Range {
-    assert!(size > 1u);
+  pub fn new(start: usize, size: usize) -> Range {
+    assert!(size > 1);
     let mut itr = iter::range(start, start+size-1);
     let current = itr.next().unwrap();
     Range {
@@ -24,8 +24,10 @@ impl Range {
   }
 }
 
-impl iter::Iterator<(uint, uint)> for Range {
-  fn next(&mut self) -> Option<(uint, uint)> {
+impl iter::Iterator for Range {
+  type Item = (usize, usize);
+
+  fn next(&mut self) -> Option<(usize, usize)> {
     match self.secondary.next() {
       Some(y) => Some((self.current_x, y)),
       None    => {
@@ -42,27 +44,27 @@ impl iter::Iterator<(uint, uint)> for Range {
   }
 }
 
-fn _n_choose_k(n: uint, k: uint) -> uint {
+fn _n_choose_k(n: usize, k: usize) -> usize {
   match k {
     0 => 1,
     _ => (n * n_choose_k(n - 1, k - 1)) / k
   }
 }
 
-pub fn n_choose_k(n: uint, k: uint) -> uint {
+pub fn n_choose_k(n: usize, k: usize) -> usize {
   assert!(n > 0);
   _n_choose_k(n, k)
 }
 
 pub struct Random {
-  base: uint,
-  sz: uint,
-  history: BTreeSet<(uint,uint)>,
-  max: uint
+  base: usize,
+  sz: usize,
+  history: BTreeSet<(usize,usize)>,
+  max: usize
 }
 
 impl Random {
-  pub fn new(start: uint, size: uint) -> Random {
+  pub fn new(start: usize, size: usize) -> Random {
     assert!(size > 1);
     /* whats the idiomatic way to check for overflow in rust? */
     Random {
@@ -73,19 +75,21 @@ impl Random {
     }
   }
 
-  pub fn random_pair(&self) -> (uint, uint) {
-    let a = rand::random::<uint>() % self.sz;
-    let mut b = rand::random::<uint>() % self.sz;
+  pub fn random_pair(&self) -> (usize, usize) {
+    let a = rand::random::<usize>() % self.sz;
+    let mut b = rand::random::<usize>() % self.sz;
     while b == a {
-      b = rand::random::<uint>() % self.sz;
+      b = rand::random::<usize>() % self.sz;
     }
 
     (self.base + a, self.base + b)
   }
 }
 
-impl iter::Iterator<(uint, uint)> for Random {
-  fn next(&mut self) -> Option<(uint, uint)> {
+impl iter::Iterator for Random {
+  type Item = (usize, usize);
+
+  fn next(&mut self) -> Option<(usize, usize)> {
     if self.history.len() >= self.max {
       return None;
     }
@@ -100,13 +104,13 @@ impl iter::Iterator<(uint, uint)> for Random {
 }
 
 pub struct RandomSlice<'a, T: 'a> {
-  modulus: uint,
+  modulus: usize,
   vec: &'a vec::Vec<T>,
   rnd: Random
 }
 
 impl<'a, T> RandomSlice<'a, T> {
-  pub fn new(modulus: uint, vec: &'a vec::Vec<T>) -> RandomSlice<'a, T> {
+  pub fn new(modulus: usize, vec: &'a vec::Vec<T>) -> RandomSlice<'a, T> {
     assert!(modulus > 1);
     let vlen = vec.len();
     assert!(vlen > 2*modulus);
@@ -122,7 +126,9 @@ impl<'a, T> RandomSlice<'a, T> {
   }
 }
 
-impl<'a, T> iter::Iterator<(&'a [T], &'a [T])> for RandomSlice<'a, T> {
+impl<'a, T> iter::Iterator for RandomSlice<'a, T> {
+  type Item = (&'a [T], &'a [T]);
+
   fn next(&mut self) -> Option<(&'a [T], &'a [T])> {
     match self.rnd.next() {
       Some((a, b)) => {

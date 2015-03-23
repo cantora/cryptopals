@@ -52,7 +52,7 @@ pub fn histogram() -> NormalHistogram {
   }}
 }
 
-#[deriving(PartialEq)]
+#[derive(PartialEq)]
 struct HeapByChi2Data<T> {
   pub data: Bytes,
   pub meta: T
@@ -110,7 +110,7 @@ pub struct HeapByChi2Iter<T> (
   pub HeapByChi2<T>
 );
 
-impl<T: PartialEq> iter::Iterator<(f64, Bytes, T)>
+impl<T: PartialEq> iter::Iterator
                    for HeapByChi2Iter<T> {
   fn next(&mut self) -> Option<(f64, Bytes, T)> {
     let HeapByChi2Iter(ref mut hp) = *self;

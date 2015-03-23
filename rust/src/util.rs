@@ -1,5 +1,6 @@
+use std::cmp::Ordering;
 
-#[deriving(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct PQCell<T1, T2> {
   pub priority: T1,
   pub value: T2

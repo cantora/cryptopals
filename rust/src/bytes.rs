@@ -1,18 +1,18 @@
 extern crate std;
-extern crate serialize;
+extern crate "rustc-serialize" as serialize;
 
 use self::serialize::base64;
-use self::serialize::base64::ToBase64;
-use self::serialize::base64::FromBase64;
-use self::serialize::base64::FromBase64Error;
+use self::serialize::base64::{ToBase64,FromBase64,FromBase64Error};
 use self::serialize::hex;
 use self::serialize::hex::ToHex;
+
 use std::fmt;
 use std::vec::Vec;
 use std::slice;
-use std::path::BytesContainer;
+//use std::path::BytesContainer;
 use std::iter::Skip;
 use std::rand;
+use std::ops::BitXor;
 
 use byte;
 use byte::Byte;
@@ -23,10 +23,10 @@ use byte::NormalHistogram;
 use iter::Modulo;
 use iter::Transposed;
 
-#[deriving(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
-impl fmt::Show for Bytes {
+impl fmt::Debug for Bytes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let Bytes(ref vec) = *self;
 
@@ -39,12 +39,12 @@ impl fmt::Show for Bytes {
   }
 }
 
-impl BytesContainer for Bytes {
-  fn container_as_bytes<'a>(&'a self) -> &'a [u8] {
-    let Bytes(ref bvec) = *self;
-    bvec.container_as_bytes()
-  }
-}
+//impl BytesContainer for Bytes {
+//  fn container_as_bytes<'a>(&'a self) -> &'a [u8] {
+//    let Bytes(ref bvec) = *self;
+//    bvec.container_as_bytes()
+//  }
+//}
 
 impl ToBase64 for Bytes {
   fn to_base64(&self, config: base64::Config) -> String {
@@ -61,9 +61,9 @@ macro_rules! maxmin_on_len(
       ($a, $b)
     }
   );
-)
+);
 
-impl BitXor<Bytes, Bytes> for Bytes {
+impl BitXor<Bytes> for Bytes {
   fn bitxor(&self, rhs: &Bytes) -> Bytes {
     let Bytes(ref vec1) = *self;
     let Bytes(ref vec2) = *rhs;
@@ -75,11 +75,11 @@ impl BitXor<Bytes, Bytes> for Bytes {
 
     let mut out_v: Vec<u8> = Vec::with_capacity(max_v.len());
 
-    for i in range(0, min_v.len()) {
+    for i in (0..min_v.len()) {
       let b = max_v[i] ^ min_v[i];
       out_v.push(b);
     }
-    for j in range(min_v.len(), max_v.len()) {
+    for j in (min_v.len()..max_v.len()) {
       out_v.push(max_v[j]);
     }
 
@@ -121,7 +121,7 @@ impl Bytes {
     Bytes::from_slice(bs.as_bytes())
   }
 
-  pub fn from_hex<Sized? T: hex::FromHex>(input: &T) -> FromHexResult {
+  pub fn from_hex<T: hex::FromHex>(input: &T) -> FromHexResult {
     input.from_hex().and_then(|bvec| {
       Ok(Bytes(bvec))
     })
@@ -138,20 +138,20 @@ impl Bytes {
     }
   }
 
-  pub fn random(len: uint) -> Bytes {
+  pub fn random(len: usize) -> Bytes {
     if len < 1 {
       return Bytes::new();
     }
 
     let mut v: Vec<u8> = Vec::new();
-    for _ in range(0, len) {
+    for _ in (0..len) {
       v.push(rand::random());
     }
 
     Bytes(v)
   }
 
-  pub fn len(&self) -> uint {
+  pub fn len(&self) -> usize {
     let Bytes(ref v) = *self;
     v.len()
   }
@@ -197,7 +197,7 @@ impl Bytes {
 
     let mut out_v: Vec<u8> = Vec::with_capacity(vec1.len());
 
-    for i in range(0, vec1.len()) {
+    for i in (0..vec1.len()) {
       let b = vec1[i] ^ vec_rhs[i%modulo];
       out_v.push(b);
     }
@@ -205,7 +205,7 @@ impl Bytes {
     Ok(Bytes(out_v))
   }
 
-  pub fn n_diff_bits(&self, rhs: &Bytes) -> Result<uint, &str> {
+  pub fn n_diff_bits(&self, rhs: &Bytes) -> Result<u32, &str> {
     let Bytes(ref vec1) = *self;
     let Bytes(ref vec2) = *rhs;
     let len = vec1.len();
@@ -231,17 +231,17 @@ impl Bytes {
     }
   }
 
-  pub fn n_set_bits(&self) -> uint {
+  pub fn n_set_bits(&self) -> u32 {
     let Bytes(ref vec1) = *self;
-    let mut count = 0u;
-    let bit_count_table: [u8,..16] = [
+    let mut count = 0u32;
+    let bit_count_table: [u8; 16] = [
       0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
     ];
   
   
     for b in vec1.iter() {
-      count += bit_count_table[(*b & 0x0f) as uint] as uint;
-      count += bit_count_table[(*b >> 4) as uint] as uint;
+      count += bit_count_table[(*b & 0x0f) as usize] as u32;
+      count += bit_count_table[(*b >> 4) as usize] as u32;
     }
 
     count
@@ -272,13 +272,13 @@ impl Bytes {
     NormalHistogram::from_histogram(&self.hist())
   }
 
-  pub fn transposed_n(&self, modulus: uint, n: uint)
-         -> Modulo<Skip<slice::Items<u8>>> {
+  pub fn transposed_n(&self, modulus: usize, n: usize)
+         -> Modulo<Skip<slice::Iter<u8>>> {
     let Bytes(ref vec) = *self;
     Modulo::new(modulus, vec.iter().skip(n))
   }
 
-  pub fn transposed(&self, modulus: uint) -> Transposed<u8> {
+  pub fn transposed(&self, modulus: usize) -> Transposed<u8> {
     let Bytes(ref vec) = *self;
     Transposed::new(vec, modulus)
   }

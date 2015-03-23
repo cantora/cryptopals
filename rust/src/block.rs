@@ -1,26 +1,25 @@
 use std::io;
-use std::io::IoResult;
-use std::io::IoErrorKind;
-use std::io::standard_error;
+//use std::io::Result;
+use std::io::ErrorKind;
 
 pub struct Reader<T> {
   rdr: T,
-  amt: uint,
-  max_zeros: uint
+  amt: usize,
+  max_zeros: usize
 }
 
-#[deriving(Show,PartialEq,Eq)]
+#[derive(Debug,PartialEq,Eq)]
 pub struct ReadStats {
-  reads: uint,
-  zero_reads: uint
+  reads: usize,
+  zero_reads: usize
 }
 
-pub fn new<T: io::Reader>(rdr: T, max_zeros: uint) -> Reader<T> {
+pub fn new<T: io::Read>(rdr: T, max_zeros: usize) -> Reader<T> {
   Reader::new(rdr, max_zeros)
 }
 
-impl<T: io::Reader> Reader<T> {
-  pub fn new(rdr: T, max_zeros: uint) -> Reader<T> {
+impl<T: io::Read> Reader<T> {
+  pub fn new(rdr: T, max_zeros: usize) -> Reader<T> {
     Reader {
       rdr: rdr,
       amt: 0,
@@ -28,7 +27,7 @@ impl<T: io::Reader> Reader<T> {
     }
   }
 
-  pub fn read(&mut self, buf: &mut [u8]) -> IoResult<ReadStats> {
+  pub fn read(&mut self, buf: &mut [u8]) -> io::Result<ReadStats> {
     let min = buf.len();
     let mut stats = ReadStats {reads: 0, zero_reads: 0};
     let mut zeros = 0;
@@ -40,7 +39,7 @@ impl<T: io::Reader> Reader<T> {
             zeros += 1;
             stats.zero_reads += 1;
             if zeros >= self.max_zeros {
-              return Err(standard_error(IoErrorKind::NoProgress))
+              return Err(ErrorKind::WriteZero)
             }
           }
           Ok(n)    => {
@@ -61,7 +60,7 @@ impl<T: io::Reader> Reader<T> {
     Ok(stats)
   }
 
-  pub fn remain(&self) -> uint {
+  pub fn remain(&self) -> usize {
     self.amt
   }
 }

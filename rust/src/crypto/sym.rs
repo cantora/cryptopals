@@ -30,10 +30,10 @@ pub mod cbc {
       assert_eq!(key.len(), 16);
       assert_eq!(iv.len(), 16);
 
-      let crypter = symm::Crypter::new(symm::AES_128_ECB);
+      let crypter = symm::Crypter::new(symm::Type::AES_128_ECB);
       let mode = match dir {
-        Direction::Encrypt => symm::Encrypt,
-        Direction::Decrypt => symm::Decrypt
+        Direction::Encrypt => symm::Mode::Encrypt,
+        Direction::Decrypt => symm::Mode::Decrypt
       };
 
       crypter.init(mode, key, vec![]);
@@ -49,7 +49,7 @@ pub mod cbc {
       Context::aes_128_base(Direction::Decrypt, key, iv)
     }
 
-    pub fn block_len(&self) -> uint {
+    pub fn block_len(&self) -> usize {
       self.iv.len()
     }
 
@@ -86,8 +86,8 @@ pub mod cbc {
 
   pub trait Stream {
     fn push(&mut self, b: u8) -> Option<Vec<u8>>;
-    fn iter<'a, T: iter::Iterator<&'a u8>>(&'a mut self,
-                                           itr: &'a mut T)
+    fn iter<'a, T: iter::Iterator>(&'a mut self,
+                                   itr: &'a mut T)
        -> Iterator<'a, T, Self> {
       Iterator::new(self, itr)
     }
@@ -179,21 +179,16 @@ pub mod cbc {
     itr: &'a mut T
   }
 
-  impl< 'a,
-        T: iter::Iterator<&'a u8>,
-        U: Stream> 
-      Iterator<'a, T, U> {
+  impl<'a, T: iter::Iterator, U: Stream> Iterator<'a, T, U> {
     pub fn new(stm: &'a mut U, itr: &'a mut T)
            -> Iterator<'a, T, U> {
       Iterator { stm: stm, itr: itr }
     }
   }
 
-  impl< 'a,
-        T: iter::Iterator<&'a u8>,
-        U: Stream>
-      iter::Iterator<Vec<u8>>
-      for Iterator<'a, T, U> {
+  impl<'a, T: iter::Iterator, U: Stream> iter::Iterator for Iterator<'a, T, U> {
+    type Item = Vec<u8>;
+
     fn next(&mut self) -> Option<Vec<u8>> {
       loop {
         match self.itr.next() {

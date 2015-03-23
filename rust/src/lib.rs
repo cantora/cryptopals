@@ -3,6 +3,9 @@
 #![feature(macro_rules)]
 #![feature(globs)]
 
+#[macro_use]
+extern crate bitflags;
+
 pub use byte::Byte;
 pub use bytes::Bytes;
 pub use binary_heap::BinaryHeap;
@@ -19,16 +22,17 @@ pub mod padding;
 pub mod crypto;
 pub mod block;
 
+
 #[macro_export]
 macro_rules! errln(
-  ($fmt:expr$(, $msg:expr)*) => {
-    (writeln![std::io::stderr(), $fmt $(, $msg)*]).ok().expect("errln! failed")
+  ($($arg:tt)*) => {
+    (writeln![std::io::stderr(), $($arg)*]).ok().expect("errln! failed")
   }
-)
+);
 
 #[macro_export]
 macro_rules! err(
-  ($fmt:expr$(, $msg:expr)*) => {
-    (write![std::io::stderr(), $fmt $(, $msg)*]).ok().expect("errln! failed")
+  ($($arg:tt)*) => {
+    (write![std::io::stderr(), $($arg)*]).ok().expect("err! failed")
   }
-)
+);
