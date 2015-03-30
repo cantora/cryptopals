@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::fmt;
-use std::num::Float;
+use std::num::ToPrimitive;
 
 pub struct Analyzer<T> {
   map: BTreeMap<T, usize>,
@@ -50,7 +50,7 @@ pub fn bits_per_symbol(alphabet_size: u64) -> f64 {
 }
 
 
-pub fn from_iter<U>(mut itr: U) -> f64 
+pub fn from_iter<U>(itr: U) -> f64 
        where U:       Iterator,
              U::Item: Ord      {
   let mut ea: Analyzer<U::Item> = Analyzer::new();

@@ -13,3 +13,4 @@ git = "https://github.com/cantora/static_mdo"
 [dependencies]
 bitflags = "0.1.1"
 rustc-serialize = "0.3.6"
+rand = "0.3"

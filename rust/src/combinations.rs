@@ -1,25 +1,34 @@
+extern crate rand;
+
 use std::iter;
-use std::rand;
 use std::collections::BTreeSet;
 use std::vec;
+use std::ops;
 
 pub struct Range {
-  primary: iter::Range<usize>,
-  secondary: iter::Range<usize>,
+  primary: ops::Range<usize>,
+  secondary: ops::Range<usize>,
   current_x: usize,
-  size: usize
+  end: usize
 }
 
+/* represents a tuple combination iterator
+ * over the range start .. start + size. the
+ * number of items in the range will be
+ * (size choose 2), so the minimum size is 2.
+ */
 impl Range {
   pub fn new(start: usize, size: usize) -> Range {
     assert!(size > 1);
-    let mut itr = iter::range(start, start+size-1);
+    let end = start+size;
+    //len(itr) = size-1 >= 1
+    let mut itr = start..end-1;
     let current = itr.next().unwrap();
     Range {
       primary: itr,
-      secondary: iter::range(current+1, start+size),
+      secondary: current+1..end,
       current_x: current,
-      size: size
+      end: end
     }
   }
 }
@@ -34,8 +43,9 @@ impl iter::Iterator for Range {
         match self.primary.next() {
           Some(x) => {
             self.current_x = x;
-            self.secondary = iter::range(self.current_x+1, self.size);
-            Some((self.current_x, self.secondary.next().unwrap()))
+            self.secondary = self.current_x+1..self.end;
+            Some((self.current_x,
+                  self.secondary.next().unwrap()))
           },
           None    => None
         }
@@ -136,8 +146,8 @@ impl<'a, T> iter::Iterator for RandomSlice<'a, T> {
         let start_b = b*self.modulus;
         let end_a   = start_a + self.modulus;
         let end_b   = start_b + self.modulus;
-        let sl_a    = self.vec.slice(start_a, end_a);
-        let sl_b    = self.vec.slice(start_b, end_b);
+        let sl_a    = &self.vec[start_a..end_a];
+        let sl_b    = &self.vec[start_b..end_b];
         Some((sl_a, sl_b))
       },
       _            => None

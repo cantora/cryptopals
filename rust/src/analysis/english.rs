@@ -38,18 +38,8 @@ fn freqs(b: u8) -> f64 {
   }
 }
 
-static mut HISTOGRAM: Option<NormalHistogram> = None;
-
 pub fn histogram() -> NormalHistogram {
-  unsafe {
-  match HISTOGRAM {
-    Some(h) => h,
-    None    => {
-      let h = NormalHistogram::from_fn(freqs);
-      HISTOGRAM = Some(h);
-      h
-    }
-  }}
+  NormalHistogram::from_fn(freqs)
 }
 
 #[derive(PartialEq)]
@@ -112,6 +102,8 @@ pub struct HeapByChi2Iter<T> (
 
 impl<T: PartialEq> iter::Iterator
                    for HeapByChi2Iter<T> {
+  type Item = (f64, Bytes, T);
+
   fn next(&mut self) -> Option<(f64, Bytes, T)> {
     let HeapByChi2Iter(ref mut hp) = *self;
     hp.pop()

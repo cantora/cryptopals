@@ -1,7 +1,7 @@
 
 pub mod sym;
 
-#[derive(PartialEq)]
+#[derive(PartialEq,Copy)]
 pub enum Direction {
   Decrypt,
   Encrypt

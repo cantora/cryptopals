@@ -68,6 +68,8 @@ impl<'a, T> Transposed<'a, T> {
 }
 
 impl<'a, T: Clone> Iterator for Transposed<'a, T> {
+  type Item = Vec<T>;
+
   fn next(&mut self) -> Option<Vec<T>> {
     let mut classes = self.modulus;
 
@@ -79,7 +81,7 @@ impl<'a, T: Clone> Iterator for Transposed<'a, T> {
       return None;
     }
 
-    let mut mod_iter = Modulo::new(
+    let mod_iter = Modulo::new(
       self.modulus,
       self.v.iter().skip(self.idx)
     );

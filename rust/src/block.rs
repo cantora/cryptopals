@@ -1,5 +1,4 @@
 use std::io;
-//use std::io::Result;
 use std::io::ErrorKind;
 
 pub struct Reader<T> {
@@ -8,7 +7,7 @@ pub struct Reader<T> {
   max_zeros: usize
 }
 
-#[derive(Debug,PartialEq,Eq)]
+#[derive(PartialEq,Eq)]
 pub struct ReadStats {
   reads: usize,
   zero_reads: usize
@@ -34,12 +33,15 @@ impl<T: io::Read> Reader<T> {
 
     while self.amt < min {
       loop {
-        match self.rdr.read(buf.slice_from_mut(self.amt)) {
+        match self.rdr.read(&mut buf[self.amt..]) {
           Ok(0)   => {
             zeros += 1;
             stats.zero_reads += 1;
             if zeros >= self.max_zeros {
-              return Err(ErrorKind::WriteZero)
+              return Err(
+                io::Error::new(ErrorKind::WriteZero,
+                               "exceeded max zeros",
+                               None))
             }
           }
           Ok(n)    => {

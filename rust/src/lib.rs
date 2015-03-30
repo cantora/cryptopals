@@ -1,7 +1,9 @@
 #![crate_name = "cryptopals"]
 #![crate_type = "rlib"]
-#![feature(macro_rules)]
-#![feature(globs)]
+#![feature(custom_derive)]
+#![feature(collections)]
+#![feature(core)]
+#![feature(io)]
 
 #[macro_use]
 extern crate bitflags;

@@ -1,17 +1,18 @@
 extern crate std;
 extern crate "rustc-serialize" as serialize;
+extern crate rand;
 
 use self::serialize::base64;
 use self::serialize::base64::{ToBase64,FromBase64,FromBase64Error};
 use self::serialize::hex;
 use self::serialize::hex::ToHex;
+use self::serialize::hex::FromHex;
 
 use std::fmt;
 use std::vec::Vec;
 use std::slice;
 //use std::path::BytesContainer;
 use std::iter::Skip;
-use std::rand;
 use std::ops::BitXor;
 
 use byte;
@@ -26,7 +27,7 @@ use iter::Transposed;
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
-impl fmt::Debug for Bytes {
+impl fmt::Display for Bytes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let Bytes(ref vec) = *self;
 
@@ -48,7 +49,7 @@ impl fmt::Debug for Bytes {
 
 impl ToBase64 for Bytes {
   fn to_base64(&self, config: base64::Config) -> String {
-    self.container_as_bytes().to_base64(config)
+    self.as_slice().to_base64(config)
   }
 }
 
@@ -63,8 +64,10 @@ macro_rules! maxmin_on_len(
   );
 );
 
-impl BitXor<Bytes> for Bytes {
-  fn bitxor(&self, rhs: &Bytes) -> Bytes {
+impl<'a, 'b> BitXor<&'a Bytes> for &'b Bytes {
+  type Output = Bytes;
+
+  fn bitxor(self, rhs: &Bytes) -> Bytes {
     let Bytes(ref vec1) = *self;
     let Bytes(ref vec2) = *rhs;
     let (max_v, min_v) = maxmin_on_len!(vec1, vec2);
@@ -121,14 +124,17 @@ impl Bytes {
     Bytes::from_slice(bs.as_bytes())
   }
 
-  pub fn from_hex<T: hex::FromHex>(input: &T) -> FromHexResult {
+  pub fn from_hex<T>(input: T) -> FromHexResult 
+      where T: hex::FromHex {
     input.from_hex().and_then(|bvec| {
       Ok(Bytes(bvec))
     })
   }
 
   pub fn from_hex_string(s: &String) -> FromHexResult {
-    Bytes::from_hex(s.as_slice())
+    s.as_slice().from_hex().and_then(|bvec| {
+      Ok(Bytes(bvec))
+    })
   }
 
   pub fn from_base64<T: FromBase64>(s: &T) -> FromBase64Result {
@@ -167,10 +173,13 @@ impl Bytes {
   }
 
   pub fn base64(&self) -> String {
+    use self::serialize::base64::Newline;
+
     self.to_base64(base64::Config {
       char_set: base64::Standard,
       pad: true,
-      line_length: None
+      line_length: None,
+      newline: Newline::LF,
     })
   }
 
@@ -218,7 +227,7 @@ impl Bytes {
       return Err("self.len() == 0");
     }
 
-    Ok((*self ^ *rhs).n_set_bits())
+    Ok((self ^ rhs).n_set_bits())
   }
 
   pub fn hamming_distance(&self, rhs: &Bytes) -> Result<f64, &str> {

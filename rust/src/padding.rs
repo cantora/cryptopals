@@ -1,5 +1,5 @@
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq)]
 pub enum PaddingError {
   VectorTooLarge,
   InvalidPadding
@@ -10,18 +10,20 @@ use padding::PaddingError;
 
 pub fn pad(bv: &mut Vec<u8>, block_sz: u8) -> u8 {
   let len: usize = bv.len();
-  let k = block_sz as usize;
+  let k = block_sz;
 
   assert!(k > 0);
 
-  let partial_len = len % k;
-  let pad_amt     = k - partial_len;
+  //u8 fits in usize so no overflow worries
+  let partial_len: u8 = (len % (k as usize)) as u8;
+  //partial_len < k by definition of modulo, so no overflow worries
+  let pad_amt         = k - partial_len;
 
   for _ in (0..pad_amt) {
     bv.push(pad_amt);
   }
 
-  assert!(bv.len() % k == 0);
+  assert!(bv.len() % (k as usize) == 0);
 
   return pad_amt;
 }

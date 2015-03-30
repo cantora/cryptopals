@@ -58,7 +58,8 @@ pub mod cbc {
     }
 
     fn process_enc(&mut self, data: &[u8]) -> Vec<u8> {
-      let Bytes(input) = Bytes::from_slice(data) ^ self.iv;
+      let bs_data      = Bytes::from_slice(data);
+      let Bytes(input) = &bs_data ^ &self.iv;
 
       let output = self.crypter.update(input.as_slice());
       self.iv = Bytes(output.clone());
@@ -68,7 +69,7 @@ pub mod cbc {
 
     fn process_dec(&mut self, data: &[u8]) -> Vec<u8> {
       let output = Bytes(self.crypter.update(data));
-      let Bytes(dec) = output ^ self.iv;
+      let Bytes(dec) = &output ^ &self.iv;
 
       self.iv = Bytes::from_slice(data);
 
@@ -174,19 +175,19 @@ pub mod cbc {
     }
   }
 
-  pub struct Iterator<'a, T: 'a, U: 'a> {
+  pub struct Iterator<'a, T: 'a + ?Sized, U: 'a + ?Sized> {
     stm: &'a mut U,
     itr: &'a mut T
   }
 
-  impl<'a, T: iter::Iterator, U: Stream> Iterator<'a, T, U> {
+  impl<'a, T: iter::Iterator + ?Sized, U: Stream + ?Sized> Iterator<'a, T, U> {
     pub fn new(stm: &'a mut U, itr: &'a mut T)
            -> Iterator<'a, T, U> {
       Iterator { stm: stm, itr: itr }
     }
   }
 
-  impl<'a, T: iter::Iterator, U: Stream> iter::Iterator for Iterator<'a, T, U> {
+  impl<'a, T: iter::Iterator<Item=&'a u8>, U: Stream> iter::Iterator for Iterator<'a, T, U> {
     type Item = Vec<u8>;
 
     fn next(&mut self) -> Option<Vec<u8>> {

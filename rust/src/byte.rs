@@ -1,10 +1,11 @@
 extern crate std;
+extern crate rand;
 
 use std::fmt;
-use std::rand;
 use std::num::Float;
 use std::ops::BitXor;
 use std::iter::FromIterator;
+use std::iter::IntoIterator;
 
 pub struct Byte(pub u8);
 
@@ -19,22 +20,24 @@ pub fn random() -> Byte {
   rand::random()
 }
 
-impl fmt::Debug for Byte {
+impl fmt::Display for Byte {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let Byte(b) = *self;
 
     match b {
       0x5c        => write!(f, "\\\\"),
-      0x20...0x7e => b.to_ascii().to_char().fmt(f),
+      0x20...0x7e => write!(f, "{}", b as char),
       _           => write!(f, "\\x{:02x}", b)
     }
   }
 }
 
-impl BitXor<Byte> for Byte {
-  fn bitxor(&self, rhs: &Byte) -> Byte {
-    let Byte(other_b) = *rhs;
-    let Byte(b) = *self;
+impl BitXor for Byte {
+  type Output = Byte;
+
+  fn bitxor(self, rhs: Byte) -> Byte {
+    let Byte(other_b) = rhs;
+    let Byte(b) = self;
 
     Byte(b^other_b)
   }
@@ -86,7 +89,8 @@ pub struct Histogram {
 }
 
 impl<'a> FromIterator<&'a u8> for Histogram {
-  fn from_iter<T: Iterator>(mut iterator: T) -> Histogram {
+  fn from_iter<T>(iterator: T) -> Histogram 
+     where T: IntoIterator<Item=&'a u8> {
     let mut arr = [0u32; 256];
     let mut count = 0u32;
 
@@ -111,7 +115,7 @@ impl PartialEq for Histogram {
   fn ne(&self, other: &Histogram) -> bool { !self.eq(other) }
 }
 
-impl fmt::Debug for Histogram {
+impl fmt::Display for Histogram {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     try!(write!(f, "total: {}\n", self.total));
     
@@ -127,7 +131,8 @@ impl fmt::Debug for Histogram {
 }
 
 impl Histogram {
-  pub fn from_iter<'a, T: Iterator>(iterator: T) -> Histogram {
+  pub fn from_iter<'a, T>(iterator: T) -> Histogram
+         where T: IntoIterator<Item=&'a u8> {
     FromIterator::from_iter(iterator)
   }
 }
