@@ -1,5 +1,6 @@
 use std::iter::Iterator;
 
+//TODO: use generic unsigned int for these
 /*******************************************
  * Modulo iterator
  * ---------------

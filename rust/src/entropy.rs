@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::num::ToPrimitive;
 
+//TODO: use generic unsigned int here
 pub struct Analyzer<T> {
   map: BTreeMap<T, usize>,
 }
@@ -50,6 +51,7 @@ pub fn bits_per_symbol(alphabet_size: u64) -> f64 {
 }
 
 
+//TODO: use IntoIterator instead
 pub fn from_iter<U>(itr: U) -> f64 
        where U:       Iterator,
              U::Item: Ord      {

@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 use std::vec;
 use std::ops;
 
+//TODO: convert this stuff to generic unsigned int
 pub struct Range {
   primary: ops::Range<usize>,
   secondary: ops::Range<usize>,

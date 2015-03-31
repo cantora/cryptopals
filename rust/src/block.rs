@@ -4,21 +4,21 @@ use std::io::ErrorKind;
 pub struct Reader<T> {
   rdr: T,
   amt: usize,
-  max_zeros: usize
+  max_zeros: u32
 }
 
 #[derive(PartialEq,Eq)]
 pub struct ReadStats {
-  reads: usize,
-  zero_reads: usize
+  reads: u32,
+  zero_reads: u32
 }
 
-pub fn new<T: io::Read>(rdr: T, max_zeros: usize) -> Reader<T> {
+pub fn new<T: io::Read>(rdr: T, max_zeros: u32) -> Reader<T> {
   Reader::new(rdr, max_zeros)
 }
 
 impl<T: io::Read> Reader<T> {
-  pub fn new(rdr: T, max_zeros: usize) -> Reader<T> {
+  pub fn new(rdr: T, max_zeros: u32) -> Reader<T> {
     Reader {
       rdr: rdr,
       amt: 0,

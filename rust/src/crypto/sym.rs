@@ -180,6 +180,7 @@ pub mod cbc {
     itr: &'a mut T
   }
 
+  //TODO: use IntoIterator instead
   impl<'a, T: iter::Iterator + ?Sized, U: Stream + ?Sized> Iterator<'a, T, U> {
     pub fn new(stm: &'a mut U, itr: &'a mut T)
            -> Iterator<'a, T, U> {

@@ -174,13 +174,11 @@ impl Bytes {
   }
 
   pub fn base64(&self) -> String {
-    use self::serialize::base64::Newline;
-
     self.to_base64(base64::Config {
       char_set: base64::Standard,
       pad: true,
       line_length: None,
-      newline: Newline::LF,
+      newline: base64::Newline::LF,
     })
   }
 
