@@ -5,12 +5,12 @@ authors = ["ar.cantor@gmail.com"]
 
 [dependencies.openssl]
 git = "https://github.com/sfackler/rust-openssl.git"
-rev = "20335c4f00995da172c3c0b4f1d64c3a84c9772c"
+rev = "a2199e01329335616eb18f619b72de13cef94b16"
 
 [dependencies.static_mdo]
 git = "https://github.com/cantora/static_mdo"
 
 [dependencies]
 bitflags = "0.1.1"
-rustc-serialize = "0.3.6"
+rustc-serialize = "0.3"
 rand = "0.3"

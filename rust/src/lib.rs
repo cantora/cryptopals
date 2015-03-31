@@ -4,6 +4,7 @@
 #![feature(collections)]
 #![feature(core)]
 #![feature(io)]
+#![feature(convert)]
 
 #[macro_use]
 extern crate bitflags;

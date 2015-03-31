@@ -1,5 +1,5 @@
 extern crate std;
-extern crate "rustc-serialize" as serialize;
+extern crate rustc_serialize as serialize;
 extern crate rand;
 
 use self::serialize::base64;
@@ -49,7 +49,8 @@ impl fmt::Display for Bytes {
 
 impl ToBase64 for Bytes {
   fn to_base64(&self, config: base64::Config) -> String {
-    self.as_slice().to_base64(config)
+    let Bytes(ref vec) = *self;
+    vec.to_base64(config)
   }
 }
 
@@ -96,14 +97,14 @@ pub type FromBase64Result = Result<Bytes, FromBase64Error>;
 impl hex::ToHex for Bytes {
   fn to_hex(&self) -> String {
     let Bytes(ref vec) = *self;
-    vec.as_slice().to_hex()
+    vec.to_hex()
   }
 }
 
-impl AsSlice<u8> for Bytes {
-  fn as_slice<'a>(&'a self) -> &'a [u8] {
+impl AsRef<[u8]> for Bytes {
+  fn as_ref<'a>(&'a self) -> &'a [u8] {
     let Bytes(ref v) = *self;
-    v.as_slice()
+    &v[..]
   }
 }
 
@@ -132,7 +133,7 @@ impl Bytes {
   }
 
   pub fn from_hex_string(s: &String) -> FromHexResult {
-    s.as_slice().from_hex().and_then(|bvec| {
+    s.from_hex().and_then(|bvec| {
       Ok(Bytes(bvec))
     })
   }

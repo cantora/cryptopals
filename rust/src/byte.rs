@@ -109,7 +109,7 @@ impl PartialEq for Histogram {
       return false;
     }
 
-    self.data.as_slice() != other.data.as_slice()
+    &self.data[..] != &other.data[..]
   }
 
   fn ne(&self, other: &Histogram) -> bool { !self.eq(other) }

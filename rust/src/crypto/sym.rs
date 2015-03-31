@@ -61,7 +61,7 @@ pub mod cbc {
       let bs_data      = Bytes::from_slice(data);
       let Bytes(input) = &bs_data ^ &self.iv;
 
-      let output = self.crypter.update(input.as_slice());
+      let output = self.crypter.update(&input[..]);
       self.iv = Bytes(output.clone());
 
       output
@@ -106,7 +106,7 @@ pub mod cbc {
         return None;
       }
 
-      let result = Some(self.cbc.process(self.buf.as_slice()));
+      let result = Some(self.cbc.process(&self.buf[..]));
       self.buf.clear();
 
       result
@@ -127,7 +127,7 @@ pub mod cbc {
       assert!(blen < 256);
       pkcs7::pad(&mut self.buf, blen as u8);
       println!("padded block: {}", Bytes(self.buf.clone()));
-      self.cbc.process(self.buf.as_slice())
+      self.cbc.process(&self.buf[..])
     }
   }
 
@@ -144,7 +144,7 @@ pub mod cbc {
         None
       }
       else {
-        let result = Some(self.cbc.process(self.buf.as_slice()));
+        let result = Some(self.cbc.process(&self.buf[..]));
         self.buf.clear();
         self.buf.push(b);
         result
@@ -163,7 +163,7 @@ pub mod cbc {
 
     pub fn finish(mut self) -> Result<Vec<u8>, Vec<u8>> {
       if self.buf.len() == self.cbc.block_len() {
-        let mut result = self.cbc.process(self.buf.as_slice());
+        let mut result = self.cbc.process(&self.buf[..]);
         match pkcs7::unpad(&mut result) {
           Some(_) => Err(self.buf),
           None    => Ok(result)
